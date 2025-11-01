@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Delete Account</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">Warning: This action cannot be undone!</h6>
+                        <p class="mb-0">
+                            This will permanently delete your account and all associated data including:
+                        </p>
+                        <ul class="mb-2 mt-2">
+                            <li>All your projects and calculations</li>
+                            <li>Your profile information</li>
+                            <li>Your preferences and settings</li>
+                        </ul>
+                    </div>
+
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label">Enter your password to confirm:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('auth.account') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Are you absolutely sure? This cannot be undone!')">
+                                Permanently Delete My Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

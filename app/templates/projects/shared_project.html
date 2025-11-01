@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Shared Project Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}" class="text-decoration-none">Home</a></li>
+                            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Shared Projects</a></li>
+                            <li class="breadcrumb-item active">{{ project.title }}</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-success me-3">
+                            <i class="bi bi-globe me-1"></i>Public Project
+                        </span>
+                        <small class="text-muted">
+                            <i class="bi bi-person-circle me-1"></i>
+                            Shared by {{ project.author.first_name }} {{ project.author.last_name }}
+                        </small>
+                    </div>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-5 fw-bold text-gradient-primary mb-3">{{ project.title }}</h1>
+                            <p class="lead text-muted mb-4">
+                                <i class="bi bi-house me-2"></i>
+                                {{ project.house_type.replace('_', ' ').title() }} • 
+                                Created {{ project.created_at.strftime('%B %d, %Y') }}
+                            </p>
+                            
+                            {% if project.description %}
+                            <div class="project-description bg-light p-4 rounded-3 mb-4">
+                                <h6 class="text-uppercase text-muted mb-3">Project Description</h6>
+                                <p class="mb-0">{{ project.description }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            {% if not current_user.is_authenticated %}
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-person-plus me-2"></i>Sign Up Free
+                                </a>
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Copy
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="d-grid gap-2">
+                                <form action="{{ url_for('projects.duplicate_project', project_id=project.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100" onclick="return confirm('Duplicate this project to your account?')">
+                                        <i class="bi bi-copy me-2"></i>Duplicate to My Projects
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('projects.new_project') }}" class="btn btn-outline-primary btn-lg">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Similar
+                                </a>
+                                <a href="{{ url_for('projects.projects_comparison') }}" class="btn btn-outline-warning btn-lg">
+                                    <i class="bi bi-bar-chart me-2"></i>Compare Projects
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-primary text-white rounded-3 mb-3">
+                        <i class="bi bi-cube"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-primary mb-2">{{ project.total_blocks|default(0)|number_format }}</h2>
+                    <p class="text-muted mb-0">Total Blocks Required</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-success text-white rounded-3 mb-3">
+                        <i class="bi bi-rulers"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-success mb-2">{{ "%.2f"|format(project.total_area|default(0)) }}</h2>
+                    <p class="text-muted mb-0">Wall Area (m²)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-info text-white rounded-3 mb-3">
+                        <i class="bi bi-bag-check"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-info mb-2">
+                        {% if project.total_blocks %}
+                            {{ ((project.total_blocks / 75)|round|int) }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </h2>
+                    <p class="text-muted mb-0">Cement Bags</p>
+                    <small class="text-muted">Approx 1 bag per 75 blocks</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-warning text-white rounded-3 mb-3">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <h3 class="fw-bold text-warning mb-2">
+                        {% if project.structures_data.block_type == '9_inch_hollow' %}
+                            9-inch Hollow
+                        {% else %}
+                            6-inch Hollow
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Block Type</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Project Details -->
+        <div class="col-lg-8">
+            <!-- Materials Breakdown -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-list-check me-2 text-primary"></i>
+                        Construction Materials Breakdown
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="material-card bg-primary text-white">
+                                <div class="material-icon">
+                                    <i class="bi bi-cube"></i>
+                                </div>
+                                <div class="material-content">
+                                    <h3>{{ project.total_blocks|default(0) }}</h3>
+                                    <p class="mb-0">Construction Blocks</p>
+                                    <small>
+                                        {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                            9-inch Hollow Blocks
+                                        {% else %}
+                                            6-inch Hollow Blocks
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="material-card bg-success text-white">
+                                <div class="material-icon">
+                                    <i class="bi bi-bag-check"></i>
+                                </div>
+                                <div class="material-content">
+                                    <h3>
+                                        {% if project.total_blocks %}
+                                            {{ ((project.total_blocks / 75)|round|int) }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </h3>
+                                    <p class="mb-0">Cement Bags</p>
+                                    <small>Approximately 1 bag per 75 blocks</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Materials -->
+                    <div class="mt-5">
+                        <h5 class="mb-4">Materials Calculation</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Quantity</th>
+                                        <th>Specifications</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <strong>
+                                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                                    9-inch Hollow Blocks
+                                                {% else %}
+                                                    6-inch Hollow Blocks
+                                                {% endif %}
+                                            </strong>
+                                        </td>
+                                        <td>{{ project.total_blocks|default(0) }} blocks</td>
+                                        <td>
+                                            Includes {{ project.structures_data.waste_percentage|default(10) }}% waste allowance
+                                            {% if project.structures_data.waste_percentage and project.total_blocks %}
+                                                ({{ (project.total_blocks * project.structures_data.waste_percentage/100)|round|int }} blocks for waste)
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cement Bags</td>
+                                        <td>
+                                            {% if project.total_blocks %}
+                                                {{ ((project.total_blocks / 75)|round|int) }} bags
+                                            {% else %}
+                                                0 bags
+                                            {% endif %}
+                                        </td>
+                                        <td>Standard 50kg bags for block laying</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sand (Trucks)</td>
+                                        <td>
+                                            {% if project.total_blocks %}
+                                                {{ ((project.total_blocks / 2000)|round(1)) }} trucks
+                                            {% else %}
+                                                0 trucks
+                                            {% endif %}
+                                        </td>
+                                        <td>Approximately 1 truck per 2000 blocks</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td colspan="3" class="fw-bold text-center">
+                                            Total Wall Area: {{ "%.2f"|format(project.total_area|default(0)) }} m²
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structure Details -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-diagram-3 me-2 text-primary"></i>
+                        Structure Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if project.structures_data.structures %}
+                    <div class="accordion" id="structuresAccordion">
+                        {% for structure in project.structures_data.structures %}
+                        <div class="accordion-item border-0 mb-3">
+                            <div class="accordion-header">
+                                <button class="accordion-button collapsed bg-light rounded-3" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" 
+                                        aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="structure-icon me-3">
+                                            <i class="bi bi-{{ 
+                                                'house-door' if structure.type == 'living_room' else
+                                                'door-closed' if structure.type == 'bedroom' else
+                                                'cup-straw' if structure.type == 'kitchen' else
+                                                'building' 
+                                            }} text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ structure.name }}</h6>
+                                            <small class="text-muted">{{ structure.type.replace('_', ' ').title() }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary">{{ structure.length }} × {{ structure.width }} × {{ structure.height }} {{ structure.unit }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#structuresAccordion">
+                                <div class="accordion-body bg-white rounded-3 mt-2">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <h6>Dimensions</h6>
+                                            <div class="dimensions-grid">
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Length</span>
+                                                    <span class="dimension-value">{{ structure.length }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Width</span>
+                                                    <span class="dimension-value">{{ structure.width }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Height</span>
+                                                    <span class="dimension-value">{{ structure.height }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Wall Area</span>
+                                                    <span class="dimension-value">
+                                                        {% set length = structure.length|float %}
+                                                        {% set width = structure.width|float %}
+                                                        {% set height = structure.height|float %}
+                                                        {{ (2 * (length + width) * height)|round(2) }} {{ structure.unit }}²
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if structure.sub_structures %}
+                                        <div class="col-md-6">
+                                            <h6>Openings & Features</h6>
+                                            <div class="openings-list">
+                                                {% for sub in structure.sub_structures %}
+                                                <div class="opening-item">
+                                                    <div class="opening-type">
+                                                        <i class="bi bi-{{ 
+                                                            'door-open' if sub.type == 'door' else
+                                                            'window' if sub.type == 'window' else
+                                                            'snow' if sub.type == 'ac_unit' else
+                                                            'fan'
+                                                        }} me-2 text-info"></i>
+                                                        {{ sub.type.replace('_', ' ').title() }}
+                                                    </div>
+                                                    <div class="opening-details">
+                                                        {{ sub.width }} × {{ sub.height }} {{ sub.unit }}
+                                                        {% if sub.quantity > 1 %}
+                                                        <span class="badge bg-secondary ms-2">×{{ sub.quantity }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-info-circle display-1 mb-3"></i>
+                        <h5>No Structures Defined</h5>
+                        <p class="mb-0">This project doesn't have any structures defined yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Project Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Project Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">Project Title</span>
+                            <span class="info-value">{{ project.title }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">House Type</span>
+                            <span class="info-value">{{ project.house_type.replace('_', ' ').title() }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Block Type</span>
+                            <span class="info-value">
+                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                    9-inch Hollow Blocks
+                                {% else %}
+                                    6-inch Hollow Blocks
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Waste Allowance</span>
+                            <span class="info-value">{{ project.structures_data.waste_percentage|default(10) }}%</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Created</span>
+                            <span class="info-value">{{ project.created_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Updated</span>
+                            <span class="info-value">{{ project.updated_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-share me-2"></i>
+                        Share This Project
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="copyShareLink()">
+                            <i class="bi bi-link-45deg me-2"></i>Copy Share Link
+                        </button>
+                        <button class="btn btn-outline-success" onclick="shareOnWhatsApp()">
+                            <i class="bi bi-whatsapp me-2"></i>Share on WhatsApp
+                        </button>
+                        {% if current_user.is_authenticated %}
+                        <form action="{{ url_for('projects.duplicate_project', project_id=project.id) }}" method="POST" class="d-grid">
+                            <button type="submit" class="btn btn-primary" onclick="return confirm('Duplicate this project to your account?')">
+                                <i class="bi bi-copy me-2"></i>Duplicate to My Projects
+                            </button>
+                        </form>
+                        <a href="{{ url_for('projects.projects_comparison') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-bar-chart me-2"></i>Compare Projects
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('projects.new_project') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Project
+                        </a>
+                        <a href="{{ url_for('projects.projects_comparison') }}" class="btn btn-warning">
+                            <i class="bi bi-bar-chart me-2"></i>Compare Projects
+                        </a>
+                        <a href="{{ url_for('projects.dashboard') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-speedometer2 me-2"></i>My Dashboard
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>Sign Up Free
+                        </a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login to Continue
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            {% if not current_user.is_authenticated %}
+            <div class="card border-0 bg-gradient-primary text-white">
+                <div class="card-body text-center p-4">
+                    <div class="cta-icon mb-3">
+                        <i class="bi bi-rocket-takeoff display-4"></i>
+                    </div>
+                    <h4 class="mb-3">Ready to Create Your Own Plans?</h4>
+                    <p class="mb-4">Join thousands of Nigerians using Buildify to plan their construction projects accurately.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Sign Up Free
+                        </a>
+                        <a href="{{ url_for('main.features') }}" class="btn btn-outline-light btn-lg">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyShareLink() {
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl).then(() => {
+        showNotification('Share link copied to clipboard!', 'success');
+    }).catch(() => {
+        const tempInput = document.createElement('input');
+        tempInput.value = currentUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showNotification('Share link copied to clipboard!', 'success');
+    });
+}
+
+function shareOnWhatsApp() {
+    const currentUrl = encodeURIComponent(window.location.href);
+    const projectTitle = encodeURIComponent("{{ project.title }}");
+    const message = encodeURIComponent(`Check out this construction project: ${projectTitle}`);
+    window.open(`https://wa.me/?text=${message}%20${currentUrl}`, '_blank');
+}
+
+function showNotification(message, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1060;
+        min-width: 300px;
+        box-shadow: var(--shadow-lg);
+    `;
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Auto-expand first structure
+document.addEventListener('DOMContentLoaded', function() {
+    const firstAccordion = document.querySelector('.accordion-button');
+    if (firstAccordion) {
+        firstAccordion.click();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Admin Dashboard</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('admin.admin_analytics') }}" class="btn btn-outline-primary">
+                <i class="bi bi-graph-up"></i> Analytics
+            </a>
+            <a href="{{ url_for('admin.admin_users') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-people"></i> Users
+            </a>
+            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-outline-info">
+                <i class="bi bi-building"></i> Projects
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <!-- Total Users -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Projects -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Projects</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_projects }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Active Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Blocks -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Blocks Calculated</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_blocks_calculated|format_number }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-cube fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Growth Statistics -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Growth (30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-success">{{ new_users_30d }}</h5>
+                                    <p class="card-text">New Users</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-info">{{ new_projects_30d }}</h5>
+                                    <p class="card-text">New Projects</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats (7 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-primary">{{ new_users_7d }}</h5>
+                                    <p class="card-text">New Users</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-warning">{{ new_projects_7d }}</h5>
+                                    <p class="card-text">New Projects</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Users -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Users</h6>
+                    <a href="{{ url_for('admin.admin_users') }}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}" 
+                                                 class="rounded-circle me-2" width="32" height="32" alt="{{ user.username }}">
+                                            <div>
+                                                <strong>{{ user.username }}</strong>
+                                                <br><small class="text-muted">{{ user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                        <span class="badge bg-danger">Admin</span>
+                                        {% elif user.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ user.projects.count() }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Projects -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Projects</h6>
+                    <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Type</th>
+                                    <th>Blocks</th>
+                                    <th>Area</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in recent_projects %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ project.title }}</strong>
+                                        <br><small class="text-muted">by {{ project.author.username }}</small>
+                                    </td>
+                                    <td>{{ project.house_type|replace('_', ' ')|title }}</td>
+                                    <td><strong>{{ project.total_blocks|format_number }}</strong></td>
+                                    <td>{{ "%.1f"|format(project.total_area) }} m²</td>
+                                    <td>{{ project.created_at.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular House Types -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Popular House Types</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for house_type, count in popular_house_types %}
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <span>{{ house_type|replace('_', ' ')|title }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

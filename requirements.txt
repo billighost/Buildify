@@ -1,0 +1,13 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-Migrate
+Flask-Mail
+Flask-WTF
+Werkzeug
+requests
+beautifulsoup4
+lxml
+weasyprint
+python-dotenv
+email-validator

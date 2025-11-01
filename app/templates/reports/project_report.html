@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buildify Report - {{ project.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .company-slogan {
+            font-size: 14px;
+            color: #666;
+        }
+        .project-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .cost-breakdown {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .badge {
+            background-color: #0d6efd;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">BUILDIFY</div>
+        <div class="company-slogan">Build Smarter One Block at a Time</div>
+        <div class="project-title">{{ project.title }} - Construction Report</div>
+        <div>Generated on {{ generated_date }}</div>
+    </div>
+
+    <!-- Project Summary -->
+    <div class="section">
+        <div class="section-title">Project Summary</div>
+        <div class="row">
+            <div class="summary-box">
+                <table>
+                    <tr>
+                        <td><strong>Project Title:</strong></td>
+                        <td>{{ project.title }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>House Type:</strong></td>
+                        <td>{{ project.house_type.replace('_', ' ').title() }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Type:</strong></td>
+                        <td>
+                            {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                9-inch Hollow Blocks
+                            {% else %}
+                                6-inch Hollow Blocks
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Blocks:</strong></td>
+                        <td>{{ calculation.total_blocks|number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Estimated Cost:</strong></td>
+                        <td>₦{{ "%.2f"|format(calculation.estimated_cost) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Wall Area:</strong></td>
+                        <td>{{ "%.2f"|format(calculation.total_area) }} m²</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Add this section after the Project Summary -->
+    {% if team_info %}
+    <!-- Team Information -->
+    <div class="section">
+        <div class="section-title">Team Information</div>
+        <table>
+            <tr>
+                <td><strong>Team Name:</strong></td>
+                <td>{{ team_info.name }}</td>
+            </tr>
+            <tr>
+                <td><strong>Team Members:</strong></td>
+                <td>
+                    <ul>
+                        {% for member in team_info.members %}
+                        <li>{{ member.name }} ({{ member.role }}) - @{{ member.username }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Collaborators Information -->
+    {% if collaborators and collaborators|length > 1 %}
+    <div class="section">
+        <div class="section-title">Project Collaborators</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for collaborator in collaborators %}
+                <tr>
+                    <td>{{ collaborator.user.first_name }} {{ collaborator.user.last_name }}</td>
+                    <td>{{ collaborator.role.title() }}</td>
+                    <td>@{{ collaborator.user.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Cost Breakdown -->
+    <div class="section">
+        <div class="section-title">Cost Breakdown</div>
+        <div class="cost-breakdown">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Construction Blocks</td>
+                        <td>{{ calculation.total_blocks|number_format }}</td>
+                        <td>₦{{ "%.2f"|format(calculation.estimated_cost / calculation.total_blocks) }}</td>
+                        <td>₦{{ "%.2f"|format(calculation.estimated_cost) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Cement Bags</td>
+                        <td>{{ calculation.cement_bags }}</td>
+                        <td>₦5,000</td>
+                        <td>₦{{ calculation.cement_bags * 5000 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sand (Trucks)</td>
+                        <td>{{ calculation.sand_trucks }}</td>
+                        <td>₦35,000</td>
+                        <td>₦{{ calculation.sand_trucks * 35000 }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Materials</strong></td>
+                        <td colspan="3"><strong>₦{{ "%.2f"|format(calculation.estimated_cost + (calculation.cement_bags * 5000) + (calculation.sand_trucks * 35000)) }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Structure Details -->
+    <div class="section">
+        <div class="section-title">Structure Details</div>
+        {% for structure in calculation.structure_breakdown %}
+        <div style="margin-bottom: 20px;">
+            <h4>{{ structure.name }} <span class="badge">{{ structure.type.replace('_', ' ').title() }}</span></h4>
+            <table>
+                <tr>
+                    <td><strong>Wall Area:</strong></td>
+                    <td>{{ "%.2f"|format(structure.total_area) }} m²</td>
+                </tr>
+                <tr>
+                    <td><strong>Openings Area:</strong></td>
+                    <td>{{ "%.2f"|format(structure.openings_area) }} m²</td>
+                </tr>
+                <tr>
+                    <td><strong>Net Area:</strong></td>
+                    <td>{{ "%.2f"|format(structure.net_area) }} m²</td>
+                </tr>
+                <tr>
+                    <td><strong>Blocks Required:</strong></td>
+                    <td>{{ structure.blocks|number_format }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Additional Materials -->
+    <div class="section">
+        <div class="section-title">Additional Requirements</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Quantity</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Binding Wire</td>
+                    <td>{{ (calculation.total_blocks / 100)|round(1) }} rolls</td>
+                    <td>Block reinforcement</td>
+                </tr>
+                <tr>
+                    <td>Water</td>
+                    <td>{{ calculation.cement_bags * 50 }} liters</td>
+                    <td>Mixing and curing</td>
+                </tr>
+                <tr>
+                    <td>Labor</td>
+                    <td>{{ (calculation.total_blocks / 80)|round(1) }} person-days</td>
+                    <td>Block laying</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Notes -->
+    <div class="section">
+        <div class="section-title">Important Notes</div>
+        <ul>
+            <li>Prices are based on current market rates and may vary</li>
+            <li>Waste allowance of {{ calculation.waste_percentage }}% included in block count</li>
+            <li>Labor costs are estimates and may vary by location</li>
+            <li>Transportation costs not included in material prices</li>
+            <li>Consult with a qualified engineer for structural requirements</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>Generated by Buildify - {{ company_info.contact }} - {{ company_info.website }}</p>
+        <p>This report is for estimation purposes only. Actual requirements may vary.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Buildify - 404 Not Found{% endblock %}
+
+{% block content %}
+<div class="error-code">404</div>
+<div class="error-title">Blueprint Lost in Construction</div>
+<div class="error-message">
+    The structure you're looking for seems to have collapsed or hasn't been built yet. 
+    Our digital architects are working to reconstruct the path.
+</div>
+<div class="construction-animation">🏗️🔨🚧</div>
+<div class="progress-bar">
+    <div class="progress-fill"></div>
+</div>
+<div class="action-buttons">
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Return to Base</a>
+    <a href="{{ url_for('projects.dashboard') }}" class="btn btn-secondary">Build Something New</a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Complex 3D Building Animation for 404
+    class BuildingAnimation404 {
+        constructor() {
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            this.init();
+            this.createBuilding();
+            this.animate();
+        }
+
+        init() {
+            // Setup renderer
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+
+            // Camera position
+            this.camera.position.z = 15;
+            this.camera.position.y = 5;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            this.scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0x4ecdc4, 1);
+            directionalLight.position.set(5, 10, 7);
+            this.scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xff6b6b, 1, 100);
+            pointLight.position.set(-5, 5, 5);
+            this.scene.add(pointLight);
+
+            // Controls
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+            this.controls.dampingFactor = 0.05;
+
+            // Handle resize
+            window.addEventListener('resize', () => this.onWindowResize());
+        }
+
+        createBuilding() {
+            this.buildingGroup = new THREE.Group();
+            this.scene.add(this.buildingGroup);
+
+            // Create a complex building structure
+            this.createComplexStructure();
+            
+            // Add floating debris
+            this.createFloatingDebris();
+        }
+
+        createComplexStructure() {
+            const buildingGeometry = new THREE.BoxGeometry(4, 8, 4);
+            const buildingMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x34495e,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            this.mainBuilding = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            this.buildingGroup.add(this.mainBuilding);
+
+            // Add windows
+            const windowGeometry = new THREE.BoxGeometry(0.5, 0.8, 0.1);
+            const windowMaterial = new THREE.MeshPhongMaterial({ color: 0x4ecdc4 });
+
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                    window.position.set(
+                        (i - 1.5) * 1.2,
+                        (j - 1) * 2,
+                        2.1
+                    );
+                    this.mainBuilding.add(window);
+                }
+            }
+
+            // Create collapsing animation
+            this.animationTime = 0;
+            this.isCollapsing = true;
+        }
+
+        createFloatingDebris() {
+            this.debris = [];
+            const debrisGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+            const debrisMaterial = new THREE.MeshPhongMaterial({ color: 0xe74c3c });
+
+            for (let i = 0; i < 20; i++) {
+                const debris = new THREE.Mesh(debrisGeometry, debrisMaterial);
+                debris.position.set(
+                    (Math.random() - 0.5) * 10,
+                    Math.random() * 15,
+                    (Math.random() - 0.5) * 10
+                );
+                debris.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+                debris.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02
+                );
+                debris.userData.rotationSpeed = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02
+                );
+                this.scene.add(debris);
+                this.debris.push(debris);
+            }
+        }
+
+        animateBuilding() {
+            this.animationTime += 0.02;
+
+            // Building pulse effect
+            const pulse = Math.sin(this.animationTime) * 0.1 + 1;
+            this.mainBuilding.scale.set(pulse, pulse, pulse);
+
+            // Collapse and rebuild cycle
+            if (this.isCollapsing) {
+                this.mainBuilding.position.y -= 0.05;
+                this.mainBuilding.rotation.z += 0.01;
+                
+                if (this.mainBuilding.position.y < -5) {
+                    this.isCollapsing = false;
+                }
+            } else {
+                this.mainBuilding.position.y += 0.05;
+                this.mainBuilding.rotation.z -= 0.01;
+                
+                if (this.mainBuilding.position.y > 0) {
+                    this.isCollapsing = true;
+                }
+            }
+
+            // Animate debris
+            this.debris.forEach(debris => {
+                debris.position.add(debris.userData.velocity);
+                debris.rotation.x += debris.userData.rotationSpeed.x;
+                debris.rotation.y += debris.userData.rotationSpeed.y;
+                debris.rotation.z += debris.userData.rotationSpeed.z;
+
+                // Bounce off imaginary walls
+                if (Math.abs(debris.position.x) > 8) debris.userData.velocity.x *= -1;
+                if (Math.abs(debris.position.y) > 8) debris.userData.velocity.y *= -1;
+                if (Math.abs(debris.position.z) > 8) debris.userData.velocity.z *= -1;
+            });
+        }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            this.animateBuilding();
+            this.controls.update();
+            this.renderer.render(this.scene, this.camera);
+        }
+
+        onWindowResize() {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    }
+
+    // Initialize the animation
+    document.addEventListener('DOMContentLoaded', () => {
+        new BuildingAnimation404();
+    });
+</script>
+{% endblock %}

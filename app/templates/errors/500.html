@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Buildify - 500 Server Error{% endblock %}
+
+{% block content %}
+<div class="error-code">500</div>
+<div class="error-title">Construction Site Overload</div>
+<div class="error-message">
+    Our digital construction site experienced a structural overload. 
+    The engineers are reinforcing the foundations as we speak.
+</div>
+<div class="construction-animation">⚡🔥🔧</div>
+<div class="progress-bar">
+    <div class="progress-fill"></div>
+</div>
+<div class="action-buttons">
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Emergency Exit</a>
+    <a href="javascript:location.reload()" class="btn btn-secondary">Rebuild Connection</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Epic Server Meltdown Animation for 500
+    class ServerMeltdownAnimation {
+        constructor() {
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            this.particles = [];
+            this.animationTime = 0;
+            
+            this.init();
+            this.createServerRack();
+            this.createParticleSystem();
+            this.animate();
+        }
+
+        init() {
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+
+            this.camera.position.z = 20;
+            this.camera.position.y = 5;
+
+            // Dramatic lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 1);
+            this.scene.add(ambientLight);
+
+            const redLight = new THREE.PointLight(0xff0000, 2, 50);
+            redLight.position.set(5, 5, 5);
+            this.scene.add(redLight);
+
+            const blueLight = new THREE.PointLight(0x0044ff, 2, 50);
+            blueLight.position.set(-5, -5, 5);
+            this.scene.add(blueLight);
+
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+
+            window.addEventListener('resize', () => this.onWindowResize());
+        }
+
+        createServerRack() {
+            this.serverGroup = new THREE.Group();
+            this.scene.add(this.serverGroup);
+
+            // Create server rack with multiple servers
+            const serverMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x2c3e50,
+                emissive: 0x1a1a1a
+            });
+
+            for (let i = 0; i < 8; i++) {
+                const serverGeometry = new THREE.BoxGeometry(3, 0.5, 1);
+                const server = new THREE.Mesh(serverGeometry, serverMaterial);
+                server.position.y = i - 3.5;
+                server.userData.originalY = server.position.y;
+                this.serverGroup.add(server);
+
+                // Add LED indicators
+                const ledGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                const ledMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x00ff00,
+                    emissive: 0x00ff00 
+                });
+                const led = new THREE.Mesh(ledGeometry, ledMaterial);
+                led.position.set(1.2, 0, 0.3);
+                server.add(led);
+                server.userData.led = led;
+            }
+        }
+
+        createParticleSystem() {
+            const particleCount = 1000;
+            const particles = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const velocities = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+                // Random positions around the server
+                positions[i3] = (Math.random() - 0.5) * 10;
+                positions[i3 + 1] = (Math.random() - 0.5) * 10;
+                positions[i3 + 2] = (Math.random() - 0.5) * 10;
+
+                // Random colors (red/orange for fire effect)
+                colors[i3] = Math.random() * 0.5 + 0.5;     // R
+                colors[i3 + 1] = Math.random() * 0.3;       // G
+                colors[i3 + 2] = 0;                         // B
+
+                // Random velocities
+                velocities[i3] = (Math.random() - 0.5) * 0.02;
+                velocities[i3 + 1] = Math.random() * 0.05;
+                velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+            }
+
+            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            this.particleSystem = new THREE.Points(particles, particleMaterial);
+            this.scene.add(this.particleSystem);
+        }
+
+        animateServers() {
+            this.animationTime += 0.02;
+
+            // Server rack meltdown effect
+            this.serverGroup.children.forEach((server, index) => {
+                const timeOffset = index * 0.5;
+                const shakeIntensity = Math.sin(this.animationTime + timeOffset) * 0.1;
+                
+                server.position.x = shakeIntensity;
+                server.position.z = Math.cos(this.animationTime + timeOffset) * 0.05;
+                
+                // LED flicker effect
+                if (server.userData.led) {
+                    const flicker = Math.random() > 0.7 ? 1 : 0;
+                    server.userData.led.material.color.setHex(flicker ? 0xff0000 : 0x00ff00);
+                    server.userData.led.material.emissive.setHex(flicker ? 0xff0000 : 0x00ff00);
+                }
+
+                // Occasional server jump
+                if (Math.random() > 0.99) {
+                    server.position.y = server.userData.originalY + (Math.random() - 0.5) * 2;
+                } else {
+                    server.position.y += (server.userData.originalY - server.position.y) * 0.1;
+                }
+            });
+
+            // Animate particles
+            const positions = this.particleSystem.geometry.attributes.position.array;
+            const velocities = this.particleSystem.geometry.attributes.velocity.array;
+
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i] += velocities[i];
+                positions[i + 1] += velocities[i + 1];
+                positions[i + 2] += velocities[i + 2];
+
+                // Reset particles that go too far
+                if (positions[i + 1] > 8 || 
+                    Math.abs(positions[i]) > 8 || 
+                    Math.abs(positions[i + 2]) > 8) {
+                    positions[i] = (Math.random() - 0.5) * 2;
+                    positions[i + 1] = -5;
+                    positions[i + 2] = (Math.random() - 0.5) * 2;
+                }
+            }
+
+            this.particleSystem.geometry.attributes.position.needsUpdate = true;
+        }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            this.animateServers();
+            this.controls.update();
+            this.renderer.render(this.scene, this.camera);
+        }
+
+        onWindowResize() {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new ServerMeltdownAnimation();
+    });
+</script>
+{% endblock %}

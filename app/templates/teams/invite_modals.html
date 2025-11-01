@@ -1,0 +1,51 @@
+<!-- Invite to Team Modal -->
+<div class="modal fade" id="inviteToTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invite to Team1</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Users</label>
+                    <input type="text" class="form-control" id="userSearch" placeholder="Type username...">
+                    <div id="userSearchResults" class="mt-2"></div>
+                </div>
+                <div id="selectedUsers" class="mb-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendTeamInvitations()">Send Invitations</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite to Project Modal -->
+<div class="modal fade" id="inviteToProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invite to Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Users</label>
+                    <input type="text" class="form-control" id="projectUserSearch" placeholder="Type username...">
+                    <div id="projectUserSearchResults" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message (Optional)</label>
+                    <textarea class="form-control" id="invitationMessage" rows="3" placeholder="Add a personal message..."></textarea>
+                </div>
+                <div id="projectSelectedUsers" class="mb-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendProjectInvitations()">Send Invitations</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Shared Project Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+             
+                <div class="card-body p-4">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                            <li class="breadcrumb-item active">Shared Project</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2">Public</span>
+                        <small class="text-muted">Shared by {{ project.author.first_name }} {{ project.author.last_name }}</small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 fw-bold mb-2">{{ project.title }}</h1>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-home me-1"></i>
+                                {{ project.house_type.replace('_', ' ').title() }} • 
+                                Created {{ project.created_at.strftime('%b %d, %Y') }}
+                            </p>
+                        </div>
+                        <div>
+                            {% if not current_user.is_authenticated %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i>Sign Up Free
+                            </a>
+                            {% else %}
+                            <form action="{{ url_for('projects.duplicate_project', project_id=project.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-primary" onclick="return confirm('Duplicate this project to your account?')">
+                                    <i class="fas fa-copy me-1"></i>Duplicate to My Projects
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-primary text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Blocks</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ project.total_blocks|default(0) }} blocks</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cube fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-success text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Estimated Cost</div>
+                            <div class="h5 mb-0 font-weight-bold">₦{{ "%.2f"|format(project.estimated_cost|default(0)) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-info text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Wall Area</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ "%.2f"|format(project.total_area|default(0)) }} m²</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ruler-combined fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Block Type</div>
+                            <div class="h5 mb-0 font-weight-bold">
+                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                    9-inch Hollow
+                                {% else %}
+                                    6-inch Hollow
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-layer-group fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Details (Read-only) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Project Overview</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Similar to the regular project view but without edit options -->
+                    {% if project.structures_data.structures %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Structure</th>
+                                    <th>Type</th>
+                                    <th>Dimensions</th>
+                                    <th>Openings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for structure in project.structures_data.structures %}
+                                <tr>
+                                    <td>{{ structure.name }}</td>
+                                    <td>{{ structure.type.replace('_', ' ').title() }}</td>
+                                    <td>{{ structure.length }} × {{ structure.width }} × {{ structure.height }} {{ structure.unit }}</td>
+                                    <td>{{ structure.sub_structures|length }} openings</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                        <p>No structures defined for this project.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action for Non-Logged In Users -->
+    {% if not current_user.is_authenticated %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body p-5 text-center">
+                    <h3 class="mb-3">Ready to Create Your Own Building Plans?</h3>
+                    <p class="mb-4">Join thousands of Nigerians using Buildify to plan their construction projects accurately.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Sign Up Free
+                        </a>
+                        <a href="{{ url_for('main.features') }}" class="btn btn-outline-light btn-lg">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function duplicateSharedProject() {
+    if (!confirm('Duplicate this project to your account?')) return;
+    
+    fetch('{{ url_for("projects.duplicate_project", project_id=project.id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Network error: ' + error);
+    });
+}
+</script>
+{% endblock %}

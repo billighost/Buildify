@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Buildify - 403 Forbidden{% endblock %}
+
+{% block content %}
+<div class="error-code">403</div>
+<div class="error-title">Restricted Construction Zone</div>
+<div class="error-message">
+    This architectural masterpiece is off-limits. You need special clearance 
+    to access this digital construction site.
+</div>
+<div class="construction-animation">🚫🏰🔒</div>
+<div class="progress-bar">
+    <div class="progress-fill"></div>
+</div>
+<div class="action-buttons">
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Return to Safety</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Request Access</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fortress Protection Animation for 403
+    class FortressAnimation {
+        constructor() {
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            this.walls = [];
+            this.animationTime = 0;
+            
+            this.init();
+            this.createFortress();
+            this.createForceField();
+            this.animate();
+        }
+
+        init() {
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+
+            this.camera.position.z = 25;
+            this.camera.position.y = 8;
+
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            this.scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0x4ecdc4, 1);
+            directionalLight.position.set(10, 10, 5);
+            this.scene.add(directionalLight);
+
+            const redLight = new THREE.PointLight(0xff4444, 2, 30);
+            redLight.position.set(0, 5, 0);
+            this.scene.add(redLight);
+
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+
+            window.addEventListener('resize', () => this.onWindowResize());
+        }
+
+        createFortress() {
+            this.fortressGroup = new THREE.Group();
+            this.scene.add(this.fortressGroup);
+
+            // Create fortress walls in a circle
+            const wallCount = 12;
+            const radius = 8;
+            const wallHeight = 6;
+            const wallThickness = 0.5;
+
+            for (let i = 0; i < wallCount; i++) {
+                const angle = (i / wallCount) * Math.PI * 2;
+                const wallGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, 2);
+                const wallMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x34495e,
+                    emissive: 0x1a1a1a
+                });
+
+                const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                wall.position.x = Math.cos(angle) * radius;
+                wall.position.z = Math.sin(angle) * radius;
+                wall.position.y = wallHeight / 2;
+                wall.lookAt(0, wallHeight / 2, 0);
+
+                this.fortressGroup.add(wall);
+                this.walls.push(wall);
+            }
+
+            // Create central tower
+            const towerGeometry = new THREE.CylinderGeometry(2, 3, 10, 8);
+            const towerMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x2c3e50,
+                emissive: 0x1a1a2e
+            });
+            this.centralTower = new THREE.Mesh(towerGeometry, towerMaterial);
+            this.centralTower.position.y = 5;
+            this.fortressGroup.add(this.centralTower);
+        }
+
+        createForceField() {
+            const shieldGeometry = new THREE.SphereGeometry(9, 32, 32);
+            const shieldMaterial = new THREE.MeshPhongMaterial({
+                color: 0x0044ff,
+                transparent: true,
+                opacity: 0.1,
+                wireframe: true,
+                emissive: 0x0044ff
+            });
+
+            this.forceField = new THREE.Mesh(shieldGeometry, shieldMaterial);
+            this.scene.add(this.forceField);
+
+            // Create energy pulses
+            this.pulseRings = [];
+            for (let i = 0; i < 3; i++) {
+                const ringGeometry = new THREE.RingGeometry(8.5, 9, 32);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x0044ff,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = i * 2 - 2;
+                this.scene.add(ring);
+                this.pulseRings.push({
+                    mesh: ring,
+                    offset: i * 2
+                });
+            }
+        }
+
+        animateFortress() {
+            this.animationTime += 0.02;
+
+            // Pulsating force field
+            const pulse = Math.sin(this.animationTime) * 0.1 + 1;
+            this.forceField.scale.set(pulse, pulse, pulse);
+            this.forceField.material.opacity = 0.1 + Math.sin(this.animationTime * 2) * 0.05;
+
+            // Rotating central tower
+            this.centralTower.rotation.y += 0.01;
+
+            // Animate pulse rings
+            this.pulseRings.forEach((ring, index) => {
+                const ringPulse = Math.sin(this.animationTime + ring.offset) * 0.5 + 0.5;
+                ring.mesh.material.opacity = ringPulse * 0.3;
+                ring.mesh.scale.set(1 + ringPulse * 0.2, 1, 1 + ringPulse * 0.2);
+            });
+
+            // Wall protection glow
+            this.walls.forEach((wall, index) => {
+                const wallPulse = Math.sin(this.animationTime + index * 0.5) * 0.5 + 0.5;
+                wall.material.emissive.setHex(0x1a1a1a + Math.floor(wallPulse * 0x333333));
+            });
+
+            // Occasional security scan
+            if (Math.floor(this.animationTime * 2) % 10 === 0) {
+                this.performSecurityScan();
+            }
+        }
+
+        performSecurityScan() {
+            // Create a scanning effect
+            const scanGeometry = new THREE.CylinderGeometry(9, 9, 0.1, 32);
+            const scanMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff4444,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const scanBeam = new THREE.Mesh(scanGeometry, scanMaterial);
+            scanBeam.position.y = -3;
+            this.scene.add(scanBeam);
+
+            // Animate scan beam
+            const scanSpeed = 0.5;
+            const scanAnimation = () => {
+                scanBeam.position.y += scanSpeed;
+                scanBeam.material.opacity -= 0.02;
+
+                if (scanBeam.position.y < 10 && scanBeam.material.opacity > 0) {
+                    requestAnimationFrame(scanAnimation);
+                } else {
+                    this.scene.remove(scanBeam);
+                }
+            };
+            scanAnimation();
+        }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            this.animateFortress();
+            this.controls.update();
+            this.renderer.render(this.scene, this.camera);
+        }
+
+        onWindowResize() {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new FortressAnimation();
+    });
+</script>
+{% endblock %}

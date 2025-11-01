@@ -1,0 +1,686 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Header with Stats -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-header card border-0 shadow-sm bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-circle bg-white text-primary me-3">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <h1 class="h3 fw-bold mb-1">Welcome back, {{ current_user.first_name }}! 👋</h1>
+                                    <p class="mb-0 opacity-75">Here's your construction overview</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <div class="col-auto">
+                                    <div class="stat-card">
+                                        <div class="stat-number">{{ projects|length }}</div>
+                                        <div class="stat-label">Total Projects</div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="stat-card">
+                                        <div class="stat-number">{{ total_blocks|number_format }}</div>
+                                        <div class="stat-label">Blocks Calculated</div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="stat-card">
+                                        <div class="stat-number">{{ house_types_count }}</div>
+                                        <div class="stat-label">House Types</div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="stat-card">
+                                        <div class="stat-number">{{ recent_projects }}</div>
+                                        <div class="stat-label">This Month</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{{ url_for('projects.new_project') }}" class="btn btn-light btn-lg">
+                                <i class="bi bi-plus-circle me-2"></i>New Project
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="selectAllProjects()">
+                                    <i class="bi bi-check-all me-1"></i>Select All
+                                </button>
+                                <button class="btn btn-outline-success btn-sm" onclick="bulkExportProjects()">
+                                    <i class="bi bi-download me-1"></i>Export Selected
+                                </button>
+                                <button class="btn btn-outline-info btn-sm" onclick="bulkDuplicateProjects()">
+                                    <i class="bi bi-copy me-1"></i>Duplicate Selected
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="bulkDeleteProjects()">
+                                    <i class="bi bi-trash me-1"></i>Delete Selected
+                                </button>
+                                <!-- In the Quick Actions Bar section, add this button -->
+                                <a class="btn btn-outline-info btn-sm" href="{{ url_for('projects.projects_comparison') }}">
+                                    <i class="bi bi-bar-chart me-1"></i>Compare Projects
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" placeholder="Search projects..." id="projectSearch">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="row">
+        <div class="col-12">
+            {% if projects %}
+            <div class="row" id="projectsContainer">
+                {% for project in projects %}
+                <div class="col-xl-4 col-lg-6 mb-4">
+                    <div class="project-card card border-0 shadow-sm h-100" data-project-id="{{ project.id }}">
+                        <div class="card-header bg-transparent border-0 pb-0">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input project-checkbox" type="checkbox" 
+                                       value="{{ project.id }}" id="project{{ project.id }}"
+                                       onchange="updateBulkActions()">
+                            </div>
+                            <div class="dropdown float-end">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('projects.view_project', project_id=project.id) }}">
+                                            <i class="bi bi-eye me-2"></i>View Project
+                                        </a>
+                                    </li>
+                                    {% if project.can_edit(current_user) %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('projects.edit_project', project_id=project.id) }}">
+                                            <i class="bi bi-pencil me-2"></i>Edit Project
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="duplicateProject({{ project.id }})">
+                                            <i class="bi bi-copy me-2"></i>Duplicate
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('projects.generate_pdf_report', project_id=project.id) }}">
+                                            <i class="bi bi-file-pdf me-2"></i>PDF Report
+                                        </a>
+                                    </li>
+                                    {% if project.author.id == current_user.id %}
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="shareProject({{ project.id }})">
+                                            <i class="bi bi-share me-2"></i>Share Project
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% if project.can_edit(current_user) %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                           onclick="confirmDelete({{ project.id }}, '{{ project.title }}')">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="project-header mb-3">
+                                <h5 class="project-title mb-2">{{ project.title }}</h5>
+                                {% if project.author.id != current_user.id %}
+                                    <span class="badge bg-info">Shared</span>
+                                {% endif %}
+                                {% if project.is_private %}
+                                <span class="badge bg-warning ms-1" title="Private project">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                {% elif project.is_public %}
+                                <span class="badge bg-success ms-1" title="Public project">
+                                    <i class="bi bi-globe"></i>
+                                </span>
+                                {% elif project.team_id %}
+                                <span class="badge bg-primary ms-1" title="Team project">
+                                    <i class="bi bi-people-fill"></i>
+                                </span>
+                                {% endif %}
+                                <span class="badge bg-secondary">{{ project.house_type.replace('_', ' ').title() }}</span>
+                            </div>
+                            
+                            {% if project.description %}
+                            <p class="project-description text-muted small mb-3">
+                                {{ project.description[:120] }}{% if project.description|length > 120 %}...{% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="project-stats">
+                                <div class="row g-2 text-center">
+                                    <div class="col-6">
+                                        <div class="stat">
+                                            <div class="stat-value text-primary">{{ project.total_blocks or 0 }}</div>
+                                            <div class="stat-label">Blocks Required</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="stat">
+                                            <div class="stat-value text-info">{{ project.updated_at.strftime('%b %d') }}</div>
+                                            <div class="stat-label">Last Updated</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="project-meta mt-3">
+                                <div class="d-flex justify-content-between align-items-center text-muted small">
+                                    <span>
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{ project.created_at.strftime('%b %d, %Y') }}
+                                    </span>
+                                    <span>
+                                        {% if project.is_public %}
+                                        <i class="bi bi-globe me-1"></i>Public
+                                        {% elif project.team_id %}
+                                        <i class="bi bi-people me-1"></i>Team
+                                        {% else %}
+                                        <i class="bi bi-lock me-1"></i>Private
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ url_for('projects.view_project', project_id=project.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                                {% if project.can_edit(current_user) %}
+                                <a href="{{ url_for('projects.edit_project', project_id=project.id) }}" 
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('projects.generate_pdf_report', project_id=project.id) }}" 
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-download me-1"></i>PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-4">
+                    <i class="bi bi-folder-plus display-1 text-muted"></i>
+                </div>
+                <h3 class="text-muted mb-3">No Projects Yet</h3>
+                <p class="text-muted mb-4">Start your first building project to get accurate block calculations</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{{ url_for('projects.new_project') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Create Your First Project
+                    </a>
+                    <button class="btn btn-outline-secondary btn-lg" onclick="showTemplates()">
+                        <i class="bi bi-collection me-2"></i>Browse Templates
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats Section -->
+    {% if projects %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Project Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="insight-card text-center">
+                                <div class="insight-icon bg-primary text-white">
+                                    <i class="bi bi-house"></i>
+                                </div>
+                                <h4 class="insight-value mt-3">{{ house_types_count }}</h4>
+                                <p class="insight-label text-muted">Different House Types</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-card text-center">
+                                <div class="insight-icon bg-success text-white">
+                                    <i class="bi bi-calculator"></i>
+                                </div>
+                                <h4 class="insight-value mt-3">{{ recent_projects }}</h4>
+                                <p class="insight-label text-muted">Projects This Month</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-card text-center">
+                                <div class="insight-icon bg-info text-white">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <h4 class="insight-value mt-3">{{ total_blocks|number_format }}</h4>
+                                <p class="insight-label text-muted">Total Blocks Calculated</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="insight-card text-center">
+                                <div class="insight-icon bg-warning text-white">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                {% if projects %}
+                                <h4 class="insight-value mt-3">{{ (projects|sort(attribute='updated_at')|last).updated_at.strftime('%b %d') }}</h4>
+                                {% else %}
+                                <h4 class="insight-value mt-3">-</h4>
+                                {% endif %}
+                                <p class="insight-label text-muted">Last Updated</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete project "<span id="projectName"></span>"? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Project Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Share Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareLink" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyShareLink()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="publicToggle" onchange="toggleProjectShare()">
+                    <label class="form-check-label" for="publicToggle">
+                        Make project publicly accessible
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Global variables
+let selectedProjects = new Set();
+let currentProjectId = null;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Add project search functionality
+    const searchInput = document.getElementById('projectSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const projectCards = document.querySelectorAll('.project-card');
+            
+            projectCards.forEach(card => {
+                const title = card.querySelector('.project-title').textContent.toLowerCase();
+                const description = card.querySelector('.project-description')?.textContent.toLowerCase() || '';
+                const houseType = card.querySelector('.badge').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm) || houseType.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+
+// Bulk Operations Management
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.project-checkbox:checked');
+    selectedProjects = new Set(Array.from(checkboxes).map(cb => cb.value));
+}
+
+function selectAllProjects() {
+    const checkboxes = document.querySelectorAll('.project-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+        selectedProjects.add(cb.value);
+    });
+    showNotification('All projects selected', 'success');
+}
+
+// Bulk Operations (keep the same as before, they're fine)
+async function bulkDeleteProjects() {
+    if (selectedProjects.size === 0) {
+        showNotification('Please select projects to delete', 'warning');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete ${selectedProjects.size} project(s)? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/projects/bulk/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                project_ids: Array.from(selectedProjects)
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`Successfully deleted ${data.deleted_count} project(s)`, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error, 'error');
+    }
+}
+
+async function bulkDuplicateProjects() {
+    if (selectedProjects.size === 0) {
+        showNotification('Please select projects to duplicate', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/projects/bulk/duplicate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                project_ids: Array.from(selectedProjects)
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`Successfully duplicated ${data.duplicated_count} project(s)`, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error, 'error');
+    }
+}
+
+async function bulkExportProjects() {
+    if (selectedProjects.size === 0) {
+        showNotification('Please select projects to export', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/projects/bulk/export', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                project_ids: Array.from(selectedProjects)
+            })
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `buildify-projects-${new Date().toISOString().split('T')[0]}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showNotification('Projects exported successfully', 'success');
+        } else {
+            throw new Error('Export failed');
+        }
+    } catch (error) {
+        showNotification('Export error: ' + error, 'error');
+    }
+}
+
+// Individual Project Operations
+function confirmDelete(projectId, projectName) {
+    currentProjectId = projectId;
+    document.getElementById('projectName').textContent = projectName;
+    document.getElementById('deleteForm').action = `/project/${projectId}/delete`;
+    
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+async function duplicateProject(projectId) {
+    if (!confirm('Duplicate this project?')) return;
+    
+    try {
+        const response = await fetch(`/project/${projectId}/duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Project duplicated successfully', 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1000);
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error, 'error');
+    }
+}
+
+async function shareProject(projectId) {
+    currentProjectId = projectId;
+    
+    try {
+        // Get current share status
+        const response = await fetch(`/project/${projectId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('shareLink').value = window.location.origin + data.share_url;
+            document.getElementById('publicToggle').checked = true;
+            
+            const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+            shareModal.show();
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error, 'error');
+    }
+}
+
+async function toggleProjectShare() {
+    const isPublic = document.getElementById('publicToggle').checked;
+    const endpoint = isPublic ? 'share' : 'unshare';
+    
+    try {
+        const response = await fetch(`/project/${currentProjectId}/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            if (isPublic) {
+                document.getElementById('shareLink').value = window.location.origin + data.share_url;
+            }
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+            document.getElementById('publicToggle').checked = !isPublic;
+        }
+    } catch (error) {
+        showNotification('Network error: ' + error, 'error');
+        document.getElementById('publicToggle').checked = !isPublic;
+    }
+}
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    shareLink.select();
+    shareLink.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    showNotification('Share link copied to clipboard', 'success');
+}
+
+// Utility Functions
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1060;
+        min-width: 300px;
+        box-shadow: var(--shadow-lg);
+    `;
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function showTemplates() {
+    showNotification('Template browser coming soon!', 'info');
+}
+
+// Add hover effects to project cards
+document.addEventListener('DOMContentLoaded', function() {
+    const projectCards = document.querySelectorAll('.project-card');
+    projectCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'all 0.3s ease';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

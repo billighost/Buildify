@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Price Management</h1>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary" onclick="refreshPrices()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh from Sources
+            </button>
+            <button class="btn btn-outline-warning" onclick="resetPrices()">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset to Auto
+            </button>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Alert -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        {% if manual_prices %}
+        <strong>Manual Pricing Active</strong> - Prices are currently set manually and will override automatic price fetching.
+        {% else %}
+        <strong>Automatic Pricing Active</strong> - Prices are fetched automatically from market sources.
+        {% endif %}
+        <br>
+        <small>Last Updated: {{ current_prices.last_updated|format_datetime if current_prices.last_updated else 'Unknown' }}</small>
+    </div>
+
+    <!-- Price Management Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Material Prices (NGN)
+                {% if manual_prices %}
+                <span class="badge bg-warning ms-2">Manual Override</span>
+                {% else %}
+                <span class="badge bg-success ms-2">Automatic</span>
+                {% endif %}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form id="priceForm">
+                <!-- 9-inch Hollow Blocks -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">9-inch Hollow Blocks</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="9_inch_hollow[average_price]" 
+                               value="{{ current_prices['9_inch_hollow']['average_price'] }}" 
+                               min="3" max="80000000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="9_inch_hollow[price_range][0]" 
+                               value="{{ current_prices['9_inch_hollow']['price_range'][0] }}" 
+                               min="2" max="70000000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="9_inch_hollow[price_range][1]" 
+                               value="{{ current_prices['9_inch_hollow']['price_range'][1] }}" 
+                               min="3" max="90000000" step="1" required>
+                    </div>
+                </div>
+
+                <!-- 6-inch Hollow Blocks -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">6-inch Hollow Blocks</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="6_inch_hollow[average_price]" 
+                               value="{{ current_prices['6_inch_hollow']['average_price'] }}" 
+                               min="2" max="6000000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="6_inch_hollow[price_range][0]" 
+                               value="{{ current_prices['6_inch_hollow']['price_range'][0] }}" 
+                               min="2" max="500000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="6_inch_hollow[price_range][1]" 
+                               value="{{ current_prices['6_inch_hollow']['price_range'][1] }}" 
+                               min="3" max="7000000" step="1" required>
+                    </div>
+                </div>
+
+                <!-- 5-inch Hollow Blocks -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">5-inch Hollow Blocks</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="5_inch_hollow[average_price]" 
+                               value="{{ current_prices['5_inch_hollow']['average_price'] }}" 
+                               min="2" max="5000000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="5_inch_hollow[price_range][0]" 
+                               value="{{ current_prices['5_inch_hollow']['price_range'][0] }}" 
+                               min="1" max="40000000" step="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="5_inch_hollow[price_range][1]" 
+                               value="{{ current_prices['5_inch_hollow']['price_range'][1] }}" 
+                               min="2" max="60000000" step="1" required>
+                    </div>
+                </div>
+
+                <!-- Cement -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">Cement (50kg bag)</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="cement[average_price]" 
+                               value="{{ current_prices['cement']['average_price'] }}" 
+                               min="40" max="700000000" step="50" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="cement[price_range][0]" 
+                               value="{{ current_prices['cement']['price_range'][0] }}" 
+                               min="35" max="60000000" step="50" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="cement[price_range][1]" 
+                               value="{{ current_prices['cement']['price_range'][1] }}" 
+                               min="45" max="80000000" step="50" required>
+                    </div>
+                </div>
+
+                <!-- Sand -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">Sharp Sand (per truck)</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="sharp_sand[average_price]" 
+                               value="{{ current_prices['sharp_sand']['average_price'] }}" 
+                               min="300" max="600000000" step="1000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="sharp_sand[price_range][0]" 
+                               value="{{ current_prices['sharp_sand']['price_range'][0] }}" 
+                               min="250" max="5000000000" step="1000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="sharp_sand[price_range][1]" 
+                               value="{{ current_prices['sharp_sand']['price_range'][1] }}" 
+                               min="350" max="7000000000" step="1000">
+                    </div>
+                </div>
+
+                <!-- Labor -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">Labor (per block laid)</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Average Price (₦)</label>
+                        <input type="number" class="form-control" name="labor[average_price]" 
+                               value="{{ current_prices['labor']['average_price'] }}" 
+                               min="10" max="2500000" step="5">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Minimum Price (₦)</label>
+                        <input type="number" class="form-control" name="labor[price_range][0]" 
+                               value="{{ current_prices['labor']['price_range'][0] }}" 
+                               min="8" max="20000000" step="5">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Maximum Price (₦)</label>
+                        <input type="number" class="form-control" name="labor[price_range][1]" 
+                               value="{{ current_prices['labor']['price_range'][1] }}" 
+                               min="12" max="30000000" step="5">
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Update Prices
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="validatePrices()">
+                            <i class="bi bi-check-circle"></i> Validate Prices
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Price History -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Price Update History</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="priceHistoryTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                            <th>Updated By</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in price_history %}
+                        <tr>
+                            <td>{{ entry.timestamp | format_datetime }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'warning' if entry.action == 'manual_update' else 'info' }}">
+                                    {{ entry.action | replace('_', ' ') | title }}
+                                </span>
+                            </td>
+                            <td>Admin User</td>
+                            <td>
+                                {% if entry.action == 'manual_update' %}
+                                Manual price adjustment
+                                {% else %}
+                                Reset to automatic pricing
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No price history available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form submission
+document.getElementById('priceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updatePrices();
+});
+
+function updatePrices() {
+    const formData = new FormData(document.getElementById('priceForm'));
+    const priceData = {};
+    
+    // Convert form data to nested object
+    for (let [key, value] of formData.entries()) {
+        const keys = key.split('[').map(k => k.replace(']', ''));
+        let current = priceData;
+        
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (!current[keys[i]]) {
+                current[keys[i]] = {};
+            }
+            current = current[keys[i]];
+        }
+        
+        current[keys[keys.length - 1]] = parseInt(value);
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Updating...';
+    submitBtn.disabled = true;
+    
+    fetch('{{ url_for("admin.update_prices") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(priceData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Prices updated successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error: ' + data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error: ' + error, 'danger');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function refreshPrices() {
+    if (!confirm('Refresh prices from market sources? This will fetch the latest market data.')) return;
+    
+    fetch('{{ url_for("admin.refresh_prices") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Prices refreshed successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error: ' + data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error: ' + error, 'danger');
+    });
+}
+
+function resetPrices() {
+    if (!confirm('Reset to automatic pricing? Manual prices will be removed and system will use market data.')) return;
+    
+    fetch('{{ url_for("admin.reset_prices") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Prices reset to automatic mode!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error: ' + data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error: ' + error, 'danger');
+    });
+}
+
+function validatePrices() {
+    const form = document.getElementById('priceForm');
+    const inputs = form.querySelectorAll('input[type="number"]');
+    let isValid = true;
+    let messages = [];
+    
+    inputs.forEach(input => {
+        const min = parseInt(input.min);
+        const max = parseInt(input.max);
+        const value = parseInt(input.value);
+        
+        if (value < min || value > max) {
+            isValid = false;
+            input.classList.add('is-invalid');
+            messages.push(`${input.name} should be between ${min} and ${max}`);
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    if (isValid) {
+        showAlert('All prices are within valid ranges!', 'success');
+    } else {
+        showAlert('Some prices are outside valid ranges. Please check highlighted fields.', 'warning');
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.alert-info'));
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+
+<style>
+.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+</style>
+{% endblock %}

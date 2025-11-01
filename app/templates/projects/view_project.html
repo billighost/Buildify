@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Project Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('projects.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">{{ project.title }}</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        {% if project.is_private %}
+                        <span class="badge bg-warning me-3">
+                            <i class="bi bi-lock-fill me-1"></i>Private
+                        </span>
+                        {% elif project.is_public %}
+                        <span class="badge bg-success me-3">
+                            <i class="bi bi-globe me-1"></i>Public
+                        </span>
+                        {% elif project.team_id %}
+                        <span class="badge bg-primary me-3">
+                            <i class="bi bi-people-fill me-1"></i>Team Project
+                        </span>
+                        {% endif %}
+                        
+                        {% if project.author.id != current_user.id %}
+                        <span class="badge bg-info">
+                            <i class="bi bi-share me-1"></i>Shared with you
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-5 fw-bold text-gradient-primary mb-3">{{ project.title }}</h1>
+                            <p class="lead text-muted mb-4">
+                                <i class="bi bi-house me-2"></i>
+                                {{ project.house_type.replace('_', ' ').title() }} • 
+                                Created {{ project.created_at.strftime('%B %d, %Y') }}
+                            </p>
+                            
+                            {% if project.description %}
+                            <div class="project-description bg-light p-4 rounded-3 mb-4">
+                                <h6 class="text-uppercase text-muted mb-3">Project Description</h6>
+                                <p class="mb-0">{{ project.description }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <div class="btn-group-vertical w-100">
+                                {% if project.can_edit(current_user) %}
+                                <a href="{{ url_for('projects.edit_project', project_id=project.id) }}" class="btn btn-primary btn-lg mb-2">
+                                    <i class="bi bi-pencil me-2"></i>Edit Project
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('projects.generate_pdf_report', project_id=project.id) }}" class="btn btn-success btn-lg mb-2">
+                                    <i class="bi bi-file-pdf me-2"></i>Download PDF Report
+                                </a>
+                                {% if project.author.id == current_user.id %}
+                                <button class="btn btn-outline-primary btn-lg" onclick="shareProject({{ project.id }})">
+                                    <i class="bi bi-share me-2"></i>Share Project
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-primary text-white rounded-3 mb-3">
+                        <i class="bi bi-cube"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-primary mb-2">{{ project.total_blocks|default(0)|number_format }}</h2>
+                    <p class="text-muted mb-0">Total Blocks Required</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-success text-white rounded-3 mb-3">
+                        <i class="bi bi-rulers"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-success mb-2">{{ "%.2f"|format(project.total_area|default(0)) }}</h2>
+                    <p class="text-muted mb-0">Wall Area (m²)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-info text-white rounded-3 mb-3">
+                        <i class="bi bi-bag-check"></i>
+                    </div>
+                    <h2 class="display-6 fw-bold text-info mb-2">{{ ((project.total_blocks|default(0) / 75)|round|int) if project.total_blocks else 0 }}</h2>
+                    <p class="text-muted mb-0">Cement Bags</p>
+                    <small class="text-muted">Approx 1 bag per 75 blocks</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon bg-warning text-white rounded-3 mb-3">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <h3 class="fw-bold text-warning mb-2">
+                        {% if project.structures_data.block_type == '9_inch_hollow' %}
+                            9-inch Hollow
+                        {% else %}
+                            6-inch Hollow
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Block Type</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Project Details -->
+        <div class="col-lg-8">
+            <!-- Materials Breakdown -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-list-check me-2 text-primary"></i>
+                        Construction Materials Breakdown
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="material-card bg-primary text-white">
+                                <div class="material-icon">
+                                    <i class="bi bi-cube"></i>
+                                </div>
+                                <div class="material-content">
+                                    <h3>{{ project.total_blocks|default(0) }}</h3>
+                                    <p class="mb-0">Construction Blocks</p>
+                                    <small>
+                                        {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                            9-inch Hollow Blocks
+                                        {% else %}
+                                            6-inch Hollow Blocks
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="material-card bg-success text-white">
+                                <div class="material-icon">
+                                    <i class="bi bi-bag-check"></i>
+                                </div>
+                                <div class="material-content">
+                                    <h3>{{ ((project.total_blocks|default(0) / 75)|round|int) if project.total_blocks else 0 }}</h3>
+                                    <p class="mb-0">Cement Bags</p>
+                                    <small>Approximately 1 bag per 75 blocks</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Materials -->
+                    <div class="mt-5">
+                        <h5 class="mb-4">Materials Calculation</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Material</th>
+                                        <th>Quantity</th>
+                                        <th>Specifications</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <strong>
+                                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                                    9-inch Hollow Blocks
+                                                {% else %}
+                                                    6-inch Hollow Blocks
+                                                {% endif %}
+                                            </strong>
+                                        </td>
+                                        <td>{{ project.total_blocks|default(0) }} blocks</td>
+                                        <td>
+                                            Includes {{ project.structures_data.waste_percentage|default(10) }}% waste allowance
+                                            {% if project.structures_data.waste_percentage %}
+                                                ({{ (project.total_blocks|default(0) * project.structures_data.waste_percentage|default(10)/100)|round|int }} blocks for waste)
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cement Bags</td>
+                                        <td>{{ ((project.total_blocks|default(0) / 75)|round|int) if project.total_blocks else 0 }} bags</td>
+                                        <td>Standard 50kg bags for block laying</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sand (Trucks)</td>
+                                        <td>{{ ((project.total_blocks|default(0) / 2000)|round(1)) if project.total_blocks else 0 }} trucks</td>
+                                        <td>Approximately 1 truck per 2000 blocks</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td colspan="3" class="fw-bold text-center">
+                                            Total Wall Area: {{ "%.2f"|format(project.total_area|default(0)) }} m²
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structure Details -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-diagram-3 me-2 text-primary"></i>
+                        Structure Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if project.structures_data.structures %}
+                    <div class="accordion" id="structuresAccordion">
+                        {% for structure in project.structures_data.structures %}
+                        <div class="accordion-item border-0 mb-3">
+                            <div class="accordion-header">
+                                <button class="accordion-button collapsed bg-light rounded-3" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" 
+                                        aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="structure-icon me-3">
+                                            <i class="bi bi-{{ 
+                                                'house-door' if structure.type == 'living_room' else
+                                                'door-closed' if structure.type == 'bedroom' else
+                                                'cup-straw' if structure.type == 'kitchen' else
+                                                'building' 
+                                            }} text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ structure.name }}</h6>
+                                            <small class="text-muted">{{ structure.type.replace('_', ' ').title() }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary">{{ structure.length }} × {{ structure.width }} × {{ structure.height }} {{ structure.unit }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#structuresAccordion">
+                                <div class="accordion-body bg-white rounded-3 mt-2">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <h6>Dimensions</h6>
+                                            <div class="dimensions-grid">
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Length</span>
+                                                    <span class="dimension-value">{{ structure.length }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Width</span>
+                                                    <span class="dimension-value">{{ structure.width }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Height</span>
+                                                    <span class="dimension-value">{{ structure.height }} {{ structure.unit }}</span>
+                                                </div>
+                                                <div class="dimension-item">
+                                                    <span class="dimension-label">Wall Area</span>
+                                                    <span class="dimension-value">{{ (2 * (structure.length|float + structure.width|float) * structure.height|float)|round(2) }} {{ structure.unit }}²</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if structure.sub_structures %}
+                                        <div class="col-md-6">
+                                            <h6>Openings & Features</h6>
+                                            <div class="openings-list">
+                                                {% for sub in structure.sub_structures %}
+                                                <div class="opening-item">
+                                                    <div class="opening-type">
+                                                        <i class="bi bi-{{ 
+                                                            'door-open' if sub.type == 'door' else
+                                                            'window' if sub.type == 'window' else
+                                                            'snow' if sub.type == 'ac_unit' else
+                                                            'fan'
+                                                        }} me-2 text-info"></i>
+                                                        {{ sub.type.replace('_', ' ').title() }}
+                                                    </div>
+                                                    <div class="opening-details">
+                                                        {{ sub.width }} × {{ sub.height }} {{ sub.unit }}
+                                                        {% if sub.quantity > 1 %}
+                                                        <span class="badge bg-secondary ms-2">×{{ sub.quantity }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-info-circle display-1 mb-3"></i>
+                        <h5>No Structures Defined</h5>
+                        <p class="mb-0">This project doesn't have any structures defined yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Project Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Project Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">Project Title</span>
+                            <span class="info-value">{{ project.title }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">House Type</span>
+                            <span class="info-value">{{ project.house_type.replace('_', ' ').title() }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Block Type</span>
+                            <span class="info-value">
+                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                    9-inch Hollow Blocks
+                                {% else %}
+                                    6-inch Hollow Blocks
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Waste Allowance</span>
+                            <span class="info-value">{{ project.structures_data.waste_percentage|default(10) }}%</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Created</span>
+                            <span class="info-value">{{ project.created_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Updated</span>
+                            <span class="info-value">{{ project.updated_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Project Owner</span>
+                            <span class="info-value">{{ project.author.first_name }} {{ project.author.last_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('projects.generate_pdf_report', project_id=project.id) }}" class="btn btn-success">
+                            <i class="bi bi-file-pdf me-2"></i>Download PDF Report
+                        </a>
+                        {% if project.can_edit(current_user) %}
+                        <a href="{{ url_for('projects.edit_project', project_id=project.id) }}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Edit Project
+                        </a>
+                        <form action="{{ url_for('projects.duplicate_project', project_id=project.id) }}" method="POST" class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary" onclick="return confirm('Duplicate this project?')">
+                                <i class="bi bi-copy me-2"></i>Duplicate Project
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if project.author.id == current_user.id %}
+                        <button class="btn btn-outline-info" onclick="shareProject({{ project.id }})">
+                            <i class="bi bi-share me-2"></i>Share Project
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collaborators -->
+            {% if collaborators|length > 1 %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>
+                        Project Collaborators
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="collaborators-list">
+                        {% for collaborator in collaborators %}
+                        <div class="collaborator-item d-flex align-items-center mb-3">
+                            <div class="collaborator-avatar bg-primary text-white rounded-circle me-3">
+                                {{ collaborator.user.first_name[0] }}{{ collaborator.user.last_name[0] }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ collaborator.user.first_name }} {{ collaborator.user.last_name }}</h6>
+                                <small class="text-muted">{{ collaborator.role|title }}</small>
+                            </div>
+                            {% if collaborator.role == 'owner' %}
+                            <span class="badge bg-primary">Owner</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Share Project Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Share Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareLink" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyShareLink()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="publicToggle" onchange="toggleProjectShare()">
+                    <label class="form-check-label" for="publicToggle">
+                        Make project publicly accessible
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function shareProject(projectId) {
+    currentProjectId = projectId;
+    
+    fetch(`/project/${projectId}/share`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('shareLink').value = window.location.origin + data.share_url;
+            document.getElementById('publicToggle').checked = true;
+            
+            const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+            shareModal.show();
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Network error: ' + error, 'error');
+    });
+}
+
+function toggleProjectShare() {
+    const isPublic = document.getElementById('publicToggle').checked;
+    const endpoint = isPublic ? 'share' : 'unshare';
+    
+    fetch(`/project/${currentProjectId}/${endpoint}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            if (isPublic) {
+                document.getElementById('shareLink').value = window.location.origin + data.share_url;
+            }
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+            document.getElementById('publicToggle').checked = !isPublic;
+        }
+    })
+    .catch(error => {
+        showNotification('Network error: ' + error, 'error');
+        document.getElementById('publicToggle').checked = !isPublic;
+    });
+}
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    shareLink.select();
+    shareLink.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    showNotification('Share link copied to clipboard!', 'success');
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1060;
+        min-width: 300px;
+        box-shadow: var(--shadow-lg);
+    `;
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Auto-expand first structure
+document.addEventListener('DOMContentLoaded', function() {
+    const firstAccordion = document.querySelector('.accordion-button');
+    if (firstAccordion) {
+        firstAccordion.click();
+    }
+});
+</script>
+{% endblock %}

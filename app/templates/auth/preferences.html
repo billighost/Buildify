@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Account Navigation -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-3">Account Settings</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('auth.account') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user me-2"></i>Profile
+                        </a>
+                        <a href="{{ url_for('auth.account_preferences') }}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-cog me-2"></i>Preferences
+                        </a>
+                        <a href="{{ url_for('auth.change_password') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>User Preferences</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <h6 class="mb-3 text-primary">Calculation Preferences</h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.preferred_block_type.label(class="form-label") }}
+                                    {{ form.preferred_block_type(class="form-select") }}
+                                    <small class="text-muted">Default block type for new projects</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.preferred_waste_percentage.label(class="form-label") }}
+                                    {{ form.preferred_waste_percentage(class="form-select") }}
+                                    <small class="text-muted">Extra blocks for waste and breakage</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.measurement_system.label(class="form-label") }}
+                                    {{ form.measurement_system(class="form-select") }}
+                                    <small class="text-muted">Preferred unit system for measurements</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="mb-3 text-primary">Notification Preferences</h6>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.email_notifications(class="form-check-input") }}
+                                {{ form.email_notifications.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">Receive email updates about new features and price changes</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('auth.account') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preferences Help -->
+            <div class="card border-0 bg-light mt-4">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle me-2"></i>About These Settings</h6>
+                    <p class="mb-2"><strong>Block Type:</strong> 9-inch hollow blocks are standard for most Nigerian buildings, while 6-inch are used for partitions.</p>
+                    <p class="mb-2"><strong>Waste Percentage:</strong> Accounts for blocks that break during construction or need cutting.</p>
+                    <p class="mb-0"><strong>Measurement System:</strong> Choose between feet/inches (traditional) or meters (modern).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

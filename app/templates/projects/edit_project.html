@@ -1,0 +1,881 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Edit Project Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb breadcrumb-light">
+                            <li class="breadcrumb-item"><a href="{{ url_for('projects.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('projects.view_project', project_id=project.id) }}">{{ project.title }}</a></li>
+                            <li class="breadcrumb-item active">Edit Project</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 fw-bold mb-2">Edit Project: {{ project.title }}</h1>
+                            <p class="mb-0 opacity-75">Update your building design and recalculate block requirements</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="btn-group">
+                                <a href="{{ url_for('projects.view_project', project_id=project.id) }}" class="btn btn-light btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i>Cancel
+                                </a>
+                                <button class="btn btn-warning btn-sm" onclick="previewProject()">
+                                    <i class="bi bi-eye me-1"></i>Preview
+                                </button>
+                                <button class="btn btn-success btn-sm" onclick="saveProject()">
+                                    <i class="bi bi-save me-1"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Sidebar - Project Configuration -->
+        <div class="col-lg-3">
+            <!-- Project Settings -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>Project Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Project Title</label>
+                        <input type="text" class="form-control" id="projectTitle" value="{{ project.title }}" 
+                               placeholder="Enter project name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description (Optional)</label>
+                        <textarea class="form-control" id="projectDescription" rows="3" 
+                                  placeholder="Describe your project...">{{ project.description or '' }}</textarea>
+                    </div>
+                    
+                    <!-- House Type Dropdown -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">House Type</label>
+                        <select class="form-select" id="houseType">
+                            <option value="custom" {% if project.house_type == 'custom' %}selected{% endif %}>Custom Design</option>
+                            {% for house_type in house_types %}
+                                {% if house_type.id != 'custom' %}
+                                <option value="{{ house_type.id }}" {% if project.house_type == house_type.id %}selected{% endif %}>{{ house_type.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <small>Select a house type to auto-fill standard structures</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Location</label>
+                        <select class="form-select" id="projectLocation">
+                            <option value="Lagos" {% if project.structures_data.location == 'Lagos' %}selected{% endif %}>Lagos</option>
+                            <option value="Abuja" {% if project.structures_data.location == 'Abuja' %}selected{% endif %}>Abuja</option>
+                            <option value="Port Harcourt" {% if project.structures_data.location == 'Port Harcourt' %}selected{% endif %}>Port Harcourt</option>
+                            <option value="Kano" {% if project.structures_data.location == 'Kano' %}selected{% endif %}>Kano</option>
+                            <option value="Ibadan" {% if project.structures_data.location == 'Ibadan' %}selected{% endif %}>Ibadan</option>
+                            <option value="Benin" {% if project.structures_data.location == 'Benin' %}selected{% endif %}>Benin</option>
+                            <option value="Other" {% if project.structures_data.location == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 mb-3" onclick="autoFillStructures()">
+                        <i class="bi bi-magic me-2"></i>Auto-Fill Structures
+                    </button>
+                    
+                    <div class="form-text text-center">
+                        <small>Auto-fill will populate standard dimensions for your selected house type</small>
+                    </div>
+                </div>
+            </div>
+            <!-- Privacy Settings -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Privacy Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Who can view this project?</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="privacy" id="privacyPrivate" value="private" 
+                                        {% if project.is_private %}checked{% endif %}>
+                                    <label class="form-check-label" for="privacyPrivate">
+                                        <strong>Private</strong> - Only you can view and edit
+                                    </label>
+                                </div>
+                                {% if project.team_id %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="privacy" id="privacyTeam" value="team"
+                                        {% if not project.is_private and not project.is_public %}checked{% endif %}>
+                                    <label class="form-check-label" for="privacyTeam">
+                                        <strong>Team</strong> - All team members can view
+                                    </label>
+                                </div>
+                                {% endif %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="privacy" id="privacyPublic" value="public"
+                                        {% if project.is_public %}checked{% endif %}>
+                                    <label class="form-check-label" for="privacyPublic">
+                                        <strong>Public</strong> - Anyone with the link can view
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculation Settings -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>Calculation Settings
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Block Type</label>
+                        <select class="form-select" id="blockType">
+                            <option value="9_inch_hollow" 
+                                    {% if project.structures_data.block_type == '9_inch_hollow' %}selected{% endif %}>
+                                9-inch Hollow Block
+                            </option>
+                            <option value="6_inch_hollow"
+                                    {% if project.structures_data.block_type == '6_inch_hollow' %}selected{% endif %}>
+                                6-inch Hollow Block
+                            </option>
+                            <option value="9_inch_solid">9-inch Solid Block</option>
+                            <option value="6_inch_solid">6-inch Solid Block</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Waste Percentage</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="wastePercentage" 
+                                   value="{{ project.structures_data.waste_percentage|default(10) }}" min="0" max="50" step="1">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="form-text">Extra blocks for cutting and breakage</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Measurement Unit</label>
+                        <select class="form-select" id="defaultUnit">
+                            {% for unit in measurement_units %}
+                            <option value="{{ unit.id }}" 
+                                    {% if project.structures_data.structures and project.structures_data.structures[0].unit == unit.id %}selected
+                                    {% elif unit.id == 'feet' %}selected{% endif %}>
+                                {{ unit.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="autoCalculate" checked>
+                        <label class="form-check-label" for="autoCalculate">Auto-calculate changes</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Templates -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>Quick Templates
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="quickAddStructure('bedroom')">
+                            <i class="bi bi-door-closed me-1"></i>Add Bedroom
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="quickAddStructure('living_room')">
+                            <i class="bi bi-tv me-1"></i>Add Living Room
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="quickAddStructure('kitchen')">
+                            <i class="bi bi-egg-fried me-1"></i>Add Kitchen
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="quickAddStructure('bathroom')">
+                            <i class="bi bi-droplet me-1"></i>Add Bathroom
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Structure Builder -->
+        <div class="col-lg-6">
+            <!-- Structure Builder Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>Structure Builder
+                    </h5>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="addStructure()">
+                            <i class="bi bi-plus-circle me-1"></i>Add Structure
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="addMultipleStructures()">
+                            <i class="bi bi-collection me-1"></i>Add Multiple
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Structure Counter -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted" id="structureCounter">0 structures added</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoCalculateStructures" checked>
+                            <label class="form-check-label" for="autoCalculateStructures">Auto-calculate</label>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="text-center py-5" style="display: none;">
+                        <div class="empty-icon mb-4">
+                            <i class="bi bi-building display-1 text-muted"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">No Structures Added</h4>
+                        <p class="text-muted mb-4">Start building by adding your first structure</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <button class="btn btn-primary" onclick="addStructure()">
+                                <i class="bi bi-plus me-1"></i>Add First Structure
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="autoFillStructures()">
+                                <i class="bi bi-magic me-1"></i>Auto-Fill All
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Structures Container -->
+                    <div id="structuresContainer" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Project Notes -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-journal-text me-2"></i>Project Notes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" id="projectNotes" rows="3" 
+                              placeholder="Add any additional notes, special requirements, or construction considerations...">{{ project.structures_data.project_info.notes if project.structures_data.project_info and project.structures_data.project_info.notes else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Live Results & Actions -->
+        <div class="col-lg-3">
+            <!-- Live Calculation Results -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>Live Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsPlaceholder" class="text-center py-4">
+                        <i class="bi bi-calculator display-4 text-muted mb-3"></i>
+                        <p class="text-muted">Add structures and configure settings to see calculations</p>
+                    </div>
+                    
+                    <div id="resultsContent" style="display: none;">
+                        <!-- Main Result -->
+                        <div class="text-center mb-4 p-3 bg-light rounded">
+                            <h2 class="text-success mb-1" id="totalBlocks">{{ project.total_blocks or 0 }}</h2>
+                            <small class="text-muted">Total Blocks Required</small>
+                        </div>
+                        
+                        <!-- Detailed Breakdown -->
+                        <div class="results-breakdown">
+                            <h6 class="fw-semibold mb-3">Detailed Breakdown</h6>
+                            
+                            <div class="breakdown-item d-flex justify-content-between mb-2">
+                                <span>Net Wall Area:</span>
+                                <strong id="netArea">{{ "%.2f"|format(project.total_area or 0) }} m²</strong>
+                            </div>
+                            
+                            <div class="breakdown-item d-flex justify-content-between mb-2">
+                                <span>Block Type:</span>
+                                <strong id="resultBlockType">
+                                    {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                        9-inch Hollow
+                                    {% else %}
+                                        6-inch Hollow
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            
+                            <div class="breakdown-item d-flex justify-content-between mb-2">
+                                <span>Waste Allowance:</span>
+                                <strong id="wasteAmount">{{ project.structures_data.waste_percentage|default(10) }}%</strong>
+                            </div>
+                            
+                            <div class="breakdown-item d-flex justify-content-between mb-2">
+                                <span>Structures Count:</span>
+                                <strong id="structuresCount">{{ project.structures_data.structures|length if project.structures_data.structures else 0 }}</strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Materials -->
+                        <div class="materials-breakdown mt-4">
+                            <h6 class="fw-semibold mb-2">Additional Materials</h6>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Cement Bags:</span>
+                                <strong id="cementBags">{{ ((project.total_blocks or 0) / 75)|round|int if project.total_blocks else 0 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Sand (Trucks):</span>
+                                <strong id="sandTrucks">{{ ((project.total_blocks or 0) / 2000)|round(1) if project.total_blocks else 0 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span>Labor (Days):</span>
+                                <strong id="laborDays">{{ ((project.total_blocks or 0) / 80)|round|int if project.total_blocks else 0 }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning-charge me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" onclick="calculateProject()">
+                            <i class="bi bi-calculator me-2"></i>Calculate Now
+                        </button>
+                        <button class="btn btn-warning" onclick="validateProject()">
+                            <i class="bi bi-check-circle me-2"></i>Validate Project
+                        </button>
+                        <button class="btn btn-primary" onclick="saveProject()">
+                            <i class="bi bi-save me-2"></i>Save Changes
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="resetToOriginal()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Reset Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block Standards Information -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Block Standards
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="blockStandards">
+                        <div class="standard-item d-flex justify-content-between align-items-center mb-2">
+                            <span>9-inch Hollow:</span>
+                            <strong class="text-success">45cm × 22.5cm × 15cm</strong>
+                        </div>
+                        <div class="standard-item d-flex justify-content-between align-items-center mb-2">
+                            <span>6-inch Hollow:</span>
+                            <strong class="text-success">45cm × 15cm × 15cm</strong>
+                        </div>
+                        <div class="standard-item d-flex justify-content-between align-items-center mb-2">
+                            <span>Coverage per block:</span>
+                            <strong class="text-success">~0.1 m²</strong>
+                        </div>
+                        <div class="standard-item d-flex justify-content-between align-items-center">
+                            <span>Blocks per m²:</span>
+                            <strong class="text-success">~10 blocks</strong>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-rulers me-1"></i>
+                            Nigerian Standard Block Sizes
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Structure Template (Hidden) -->
+<div id="structureTemplate" style="display: none !important;">
+    <div class="structure-card card border mb-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-secondary me-2 toggle-structure-btn" onclick="toggleStructure(this)">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <h6 class="mb-0 structure-title">New Structure</h6>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-success" onclick="duplicateStructure(this)" title="Duplicate">
+                    <i class="bi bi-copy"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="removeStructure(this)" title="Remove">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Structure Type</label>
+                    <select class="form-select structure-type" onchange="updateStructureName(this)">
+                        {% for structure in structure_types %}
+                        <option value="{{ structure.id }}">{{ structure.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Length</label>
+                    <input type="number" class="form-control structure-length" value="0" step="0.1" min="0"
+                           onchange="updateCalculation()" placeholder="Length">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Width</label>
+                    <input type="number" class="form-control structure-width" value="0" step="0.1" min="0"
+                           onchange="updateCalculation()" placeholder="Width">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Height</label>
+                    <input type="number" class="form-control structure-height" value="0" step="0.1" min="0"
+                           onchange="updateCalculation()" placeholder="Height">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Unit</label>
+                    <select class="form-select structure-unit" onchange="updateCalculation()">
+                        {% for unit in measurement_units %}
+                        <option value="{{ unit.id }}">{{ unit.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Sub-structures Section -->
+            <div class="sub-structures-section mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">
+                        <i class="bi bi-door-open me-1"></i>Openings & Features
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="addSubStructure(this)">
+                        <i class="bi bi-plus me-1"></i>Add Opening
+                    </button>
+                </div>
+                <div class="sub-structures-container">
+                    <!-- Sub-structures will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sub-structure Template (Hidden) -->
+<div id="subStructureTemplate" style="display: none !important;">
+    <div class="sub-structure-card card border mb-2">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm sub-structure-type">
+                        {% for sub_structure in sub_structure_types %}
+                        <option value="{{ sub_structure.id }}">{{ sub_structure.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control form-control-sm sub-structure-width" 
+                           value="0" step="0.1" min="0" placeholder="Width" onchange="updateCalculation()">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control form-control-sm sub-structure-height" 
+                           value="0" step="0.1" min="0" placeholder="Height" onchange="updateCalculation()">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm sub-structure-unit" onchange="updateCalculation()">
+                        {% for unit in measurement_units %}
+                        <option value="{{ unit.id }}">{{ unit.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control form-control-sm sub-structure-quantity" 
+                           value="1" min="1" placeholder="Qty" onchange="updateCalculation()">
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-danger w-100" onclick="removeSubStructure(this)" title="Remove">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Multiple Structures Modal -->
+<div class="modal fade" id="multipleStructuresModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Multiple Structures</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Structure Type</label>
+                    <select class="form-select" id="bulkStructureType">
+                        {% for structure in structure_types %}
+                        <option value="{{ structure.id }}">{{ structure.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Number of Structures</label>
+                    <input type="number" class="form-control" id="bulkStructureCount" value="1" min="1" max="20">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Default Dimensions</label>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="bulkLength" placeholder="Length" value="10">
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="bulkWidth" placeholder="Width" value="10">
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="bulkHeight" placeholder="Height" value="10">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addBulkStructures()">Add Structures</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/project-builder.js') }}"></script>
+<script>
+// Enhanced project builder functionality for edit mode
+class EditProjectBuilder extends ProjectBuilder {
+    constructor() {
+        super();
+        this.projectId = {{ project.id }};
+        this.originalData = null;
+        this.initEditMode();
+    }
+
+    initEditMode() {
+        this.setupAutoSave();
+        this.setupRealTimeValidation();
+        this.loadOriginalData();
+    }
+
+    loadOriginalData() {
+        // Store original data for reset functionality
+        this.originalData = this.getProjectData();
+    }
+
+    setupAutoSave() {
+        let saveTimeout;
+        const inputs = document.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(saveTimeout);
+                if (document.getElementById('autoCalculateStructures').checked) {
+                    saveTimeout = setTimeout(() => this.updateCalculation(), 1000);
+                }
+            });
+        });
+    }
+
+    setupRealTimeValidation() {
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => {
+                this.validateInput(input);
+            });
+        });
+    }
+
+    validateInput(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value) || value < 0) {
+            input.classList.add('is-invalid');
+            this.showNotification('Please enter a valid positive number', 'warning', 3000);
+            return false;
+        } else {
+            input.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+    // Override to include project ID
+    async saveProject() {
+        // Clean up any invalid structures first
+        this.cleanupStructures();
+        
+        if (!this.validateProject()) {
+            this.showNotification('Please fix validation errors before saving', 'error');
+            return false;
+        }
+        
+        const projectData = this.getProjectData();
+        const title = document.getElementById('projectTitle').value.trim();
+        const description = document.getElementById('projectDescription').value.trim();
+        const houseType = document.getElementById('houseType').value;
+        const location = document.getElementById('projectLocation').value;
+        const notes = document.getElementById('projectNotes').value.trim();
+        
+        if (!title) {
+            this.showNotification('Please enter a project title', 'error');
+            return false;
+        }
+        
+        if (projectData.structures.length === 0) {
+            this.showNotification('Please add at least one structure', 'error');
+            return false;
+        }
+
+        // Add additional project info to data
+        projectData.project_info = {
+            description: description,
+            location: location,
+            notes: notes
+        };
+
+        try {
+            const response = await fetch('{{ url_for("projects.edit_project", project_id=project.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    house_type: houseType,
+                    structures: projectData,
+                    privacy: document.querySelector('input[name="privacy"]:checked').value
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('Project updated successfully!', 'success');
+                this.originalData = projectData; // Update original data
+                
+                // Update URL if title changed
+                if (title !== '{{ project.title }}') {
+                    history.replaceState(null, '', `/project/${result.project_id}/edit`);
+                }
+                
+                // Optional: Redirect to view page after delay
+                setTimeout(() => {
+                    window.location.href = result.redirect_url || '{{ url_for("projects.view_project", project_id=project.id) }}';
+                }, 1500);
+                
+                return true;
+            } else {
+                throw new Error(result.error || 'Failed to update project');
+            }
+        } catch (error) {
+            this.showNotification('Error updating project: ' + error.message, 'error');
+            return false;
+        }
+    }
+
+    validateProject() {
+        const structures = this.getProjectData().structures;
+        
+        if (structures.length === 0) {
+            this.showNotification('Please add at least one structure', 'warning');
+            return false;
+        }
+
+        let hasErrors = false;
+        let errorMessages = [];
+        
+        structures.forEach((structure, index) => {
+            if (structure.length <= 0 || structure.width <= 0 || structure.height <= 0) {
+                const errorMsg = `Structure "${structure.name}" has invalid dimensions (${structure.length} × ${structure.width} × ${structure.height})`;
+                errorMessages.push(errorMsg);
+                hasErrors = true;
+            }
+        });
+
+        if (hasErrors) {
+            // Show all error messages
+            const errorList = errorMessages.join('\n• ');
+            this.showNotification(`Please fix these issues:\n• ${errorList}`, 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    resetToOriginal() {
+        if (confirm('Are you sure you want to reset all changes? This cannot be undone.')) {
+            this.loadProjectData(this.originalData);
+            this.showNotification('Project reset to original state', 'info');
+        }
+    }
+}
+
+// Global functions
+function addMultipleStructures() {
+    const modal = new bootstrap.Modal(document.getElementById('multipleStructuresModal'));
+    modal.show();
+}
+
+function addBulkStructures() {
+    const type = document.getElementById('bulkStructureType').value;
+    const count = parseInt(document.getElementById('bulkStructureCount').value);
+    const length = parseFloat(document.getElementById('bulkLength').value);
+    const width = parseFloat(document.getElementById('bulkWidth').value);
+    const height = parseFloat(document.getElementById('bulkHeight').value);
+
+    for (let i = 0; i < count; i++) {
+        window.projectBuilder.addStructure();
+        const container = document.getElementById('structuresContainer');
+        const lastStructure = container.lastElementChild;
+        
+        lastStructure.querySelector('.structure-length').value = length;
+        lastStructure.querySelector('.structure-width').value = width;
+        lastStructure.querySelector('.structure-height').value = height;
+        lastStructure.querySelector('.structure-type').value = type;
+        
+        window.projectBuilder.updateStructureName(lastStructure.querySelector('.structure-type'));
+    }
+
+    window.projectBuilder.updateCalculation();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('multipleStructuresModal'));
+    modal.hide();
+    
+    window.projectBuilder.showNotification(`Added ${count} structures`, 'success');
+}
+
+function duplicateStructure(button) {
+    const structureCard = button.closest('.structure-card');
+    if (!structureCard) {
+        console.error('Structure card not found');
+        return;
+    }
+    
+    const structureData = window.projectBuilder.getStructureData(structureCard);
+    
+    window.projectBuilder.addStructure();
+    const container = document.getElementById('structuresContainer');
+    const newStructure = container.lastElementChild;
+    
+    window.projectBuilder.setStructureData(newStructure, structureData);
+    window.projectBuilder.updateCalculation();
+    
+    window.projectBuilder.showNotification('Structure duplicated', 'success');
+}
+
+function previewProject() {
+    const projectData = window.projectBuilder.getProjectData();
+    if (projectData.structures.length === 0) {
+        window.projectBuilder.showNotification('Please add structures to preview', 'warning');
+        return;
+    }
+    
+    window.projectBuilder.showNotification('Preview feature coming soon!', 'info');
+}
+
+function validateProject() {
+    return window.projectBuilder.validateProject();
+}
+
+function quickAddStructure(type) {
+    const templates = {
+        'bedroom': { type: 'bedroom_master', length: 14, width: 12, height: 10, unit: 'feet' },
+        'living_room': { type: 'living_room', length: 18, width: 16, height: 12, unit: 'feet' },
+        'kitchen': { type: 'kitchen', length: 10, width: 8, height: 10, unit: 'feet' },
+        'bathroom': { type: 'bathroom', length: 8, width: 6, height: 9, unit: 'feet' }
+    };
+    
+    const template = templates[type];
+    if (template) {
+        window.projectBuilder.addStructure();
+        const container = document.getElementById('structuresContainer');
+        const lastStructure = container.lastElementChild;
+        
+        lastStructure.querySelector('.structure-type').value = template.type;
+        lastStructure.querySelector('.structure-length').value = template.length;
+        lastStructure.querySelector('.structure-width').value = template.width;
+        lastStructure.querySelector('.structure-height').value = template.height;
+        lastStructure.querySelector('.structure-unit').value = template.unit;
+        
+        window.projectBuilder.updateStructureName(lastStructure.querySelector('.structure-type'));
+        window.projectBuilder.updateCalculation();
+        
+        window.projectBuilder.showNotification(`Added ${type.replace('_', ' ')}`, 'success');
+    }
+}
+
+function resetToOriginal() {
+    window.projectBuilder.resetToOriginal();
+}
+
+// Initialize enhanced project builder for edit mode
+document.addEventListener('DOMContentLoaded', function() {
+    window.projectBuilder = new EditProjectBuilder();
+    
+    // Load existing project structures
+    const projectData = {{ project.structures_data|tojson|safe }};
+    console.log('Loading project data:', projectData);
+    
+    // Clean up the project data first to remove any invalid structures
+    if (projectData.structures) {
+        projectData.structures = projectData.structures.filter(structure => 
+            structure.length > 0 && structure.width > 0 && structure.height > 0
+        );
+    }
+    
+    window.projectBuilder.loadProjectData(projectData);
+    
+    // Set default unit
+    const defaultUnit = document.getElementById('defaultUnit').value;
+    document.querySelectorAll('.structure-unit').forEach(select => {
+        select.value = defaultUnit;
+    });
+    
+    // Update calculation to show current results
+    setTimeout(() => {
+        window.projectBuilder.updateCalculation();
+    }, 500);
+});
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', function (e) {
+    // You can implement change detection here if needed
+});
+</script>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">User Management</h1>
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="unverified" {% if status_filter == 'unverified' %}selected{% endif %}>Unverified</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search users..." value="{{ search_query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Users ({{ users.total }})</h6>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" onclick="selectAllUsers()">Select All</button>
+                <button class="btn btn-sm btn-outline-success" onclick="bulkAction('activate')">Activate Selected</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="bulkAction('deactivate')">Deactivate Selected</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="bulkAction('delete')">Delete Selected</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="30">
+                                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
+                            </th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Location</th>
+                            <th>Projects</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users.items %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="user-checkbox" value="{{ user.id }}" 
+                                       {% if user.id == current_user.id %}disabled{% endif %}>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}" 
+                                         class="rounded-circle me-2" width="32" height="32" alt="{{ user.username }}">
+                                    <div>
+                                        <strong>{{ user.username }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ user.first_name }} {{ user.last_name }}
+                                            {% if user.is_admin %}
+                                            <span class="badge bg-danger ms-1">Admin</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.location or 'Not set' }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ user.projects.count() }}</span>
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                                {% if user.is_verified %}
+                                <span class="badge bg-info">Verified</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('admin.admin_user_detail', user_id=user.id) }}" 
+                                       class="btn btn-outline-primary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if user.id != current_user.id %}
+                                    <button class="btn btn-outline-warning toggle-admin-btn" 
+                                            data-user-id="{{ user.id }}" 
+                                            data-is-admin="{{ user.is_admin|lower }}"
+                                            title="Toggle Admin">
+                                        <i class="bi bi-shield"></i>
+                                    </button>
+                                    <button class="btn btn-outline-{{ 'success' if not user.is_active else 'secondary' }} toggle-active-btn"
+                                            data-user-id="{{ user.id }}"
+                                            data-is-active="{{ user.is_active|lower }}"
+                                            title="Toggle Active">
+                                        <i class="bi bi-person-{{ 'check' if not user.is_active else 'x' }}"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% for page_num in users.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == users.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.admin_users', page=page_num, status=status_filter, role=role_filter, search=search_query) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSelectAll(checkbox) {
+    const userCheckboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
+    userCheckboxes.forEach(cb => cb.checked = checkbox.checked);
+}
+
+function selectAllUsers() {
+    document.getElementById('select-all').checked = true;
+    toggleSelectAll(document.getElementById('select-all'));
+}
+
+function getSelectedUserIds() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked:not(:disabled)');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+function bulkAction(action) {
+    const userIds = getSelectedUserIds();
+    if (userIds.length === 0) {
+        alert('Please select at least one user.');
+        return;
+    }
+
+    if (action === 'delete' && !confirm(`Are you sure you want to delete ${userIds.length} user(s)? This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch('{{ url_for("admin.bulk_user_action") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_ids: userIds,
+            action: action
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+// Toggle admin status
+document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        const isAdmin = this.dataset.isAdmin === 'true';
+
+        if (!confirm(`Are you sure you want to ${isAdmin ? 'revoke' : 'grant'} admin privileges for this user?`)) {
+            return;
+        }
+
+        fetch(`/admin/users/${userId}/toggle-admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+});
+
+// Toggle active status
+document.querySelectorAll('.toggle-active-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        const isActive = this.dataset.isActive === 'true';
+
+        if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this user?`)) {
+            return;
+        }
+
+        fetch(`/admin/users/${userId}/toggle-active`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

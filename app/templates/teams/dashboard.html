@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Teams & Collaboration</h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                    <i class="bi bi-plus-circle me-2"></i>Create Team
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Invitations -->
+    {% if pending_invitations %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bell me-2"></i>Pending Invitations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for invitation in pending_invitations %}
+                    <div class="invitation-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                        <div>
+                            <h6 class="mb-1">{{ invitation.project.title }}</h6>
+                            <p class="mb-1 text-muted">
+                                Invited by {{ invitation.inviter.first_name }} {{ invitation.inviter.last_name }}
+                            </p>
+                            <small class="text-muted">
+                                Project Type: {{ invitation.project.house_type.replace('_', ' ').title() }}
+                            </small>
+                            {% if invitation.message %}
+                            <p class="mb-0 mt-2"><small>"{{ invitation.message }}"</small></p>
+                            {% endif %}
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success btn-sm" onclick="respondToInvitation({{ invitation.id }}, 'accept')">
+                                <i class="bi bi-check-lg"></i> Accept
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="respondToInvitation({{ invitation.id }}, 'decline')">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Teams Section -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>Your Teams
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if user_teams %}
+                    <div class="list-group list-group-flush">
+                        {% for team in user_teams %}
+                        {% set member_count = team.members.count() %}
+                        {% set project_count = team.projects.count() %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ team.name }}</h6>
+                                <p class="mb-1 text-muted small">{{ team.description or 'No description' }}</p>
+                                <small class="text-muted">
+                                    {{ member_count }} member{{ 's' if member_count != 1 }} • 
+                                    {{ project_count }} project{{ 's' if project_count != 1 }}
+                                </small>
+                            </div>
+                            <div class="btn-group">
+                                <a href="{{ url_for('teams.team_detail', team_id=team.id) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if team_roles[team.id] %}
+                                <button class="btn btn-outline-secondary btn-sm" onclick="inviteToTeam({{ team.id }})">
+                                    <i class="bi bi-person-plus"></i> Invite
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-people display-4 d-block mb-3"></i>
+                        <h5>No Teams Yet</h5>
+                        <p>Create your first team to start collaborating with others.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Collaboration Section -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-share me-2"></i>Project Collaboration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6>Invite to Project</h6>
+                        <div class="input-group">
+                            <select class="form-select" id="projectSelect">
+                                <option value="">Select a project...</option>
+                                {% for project in current_user.projects %}
+                                <option value="{{ project.id }}">{{ project.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary" onclick="openProjectInviteModal()" id="inviteToProjectBtn" disabled>
+                                <i class="bi bi-person-plus"></i> Invite
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="collaboration-stats">
+                        <h6>Collaboration Overview</h6>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat">
+                                    <div class="stat-value text-primary">{{ current_user.projects.count() }}</div>
+                                    <div class="stat-label">Your Projects</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat">
+                                    <div class="stat-value text-success">{{ shared_projects|length }}</div>
+                                    <div class="stat-label">Shared With You</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat">
+                                    <div class="stat-value text-info">{{ team_projects|length }}</div>
+                                    <div class="stat-label">Team Projects</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="mt-4">
+                        <h6>Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('projects.dashboard') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-speedometer2 me-1"></i>View All Projects
+                            </a>
+                            <a href="{{ url_for('projects.new_project') }}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i>Create New Project
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Team Modal -->
+<div class="modal fade" id="createTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm">
+                    <div class="mb-3">
+                        <label class="form-label">Team Name</label>
+                        <input type="text" class="form-control" name="name" required placeholder="Enter team name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Describe your team's purpose..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createTeam()">Create Team</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite to Team Modal -->
+<div class="modal fade" id="inviteToTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invite to Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Users</label>
+                    <input type="text" class="form-control" id="userSearch" placeholder="Type username...">
+                    <div id="userSearchResults" class="mt-2"></div>
+                </div>
+                <div id="selectedUsers" class="mb-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendTeamInvitations()">Send Invitations</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite to Project Modal -->
+<div class="modal fade" id="inviteToProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invite to Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Users</label>
+                    <input type="text" class="form-control" id="projectUserSearch" placeholder="Type username...">
+                    <div id="projectUserSearchResults" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message (Optional)</label>
+                    <textarea class="form-control" id="invitationMessage" rows="3" placeholder="Add a personal message..."></textarea>
+                </div>
+                <div id="projectSelectedUsers" class="mb-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendProjectInvitations()">Send Invitations</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentTeamId = null;
+let currentProjectId = null;
+let selectedUsers = [];
+let projectSelectedUsers = [];
+
+// Team management
+function createTeam() {
+    const form = document.getElementById('createTeamForm');
+    const formData = new FormData(form);
+    
+    if (!formData.get('name')) {
+        showToast('Team name is required', 'error');
+        return;
+    }
+    
+    fetch('/teams/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: formData.get('name'),
+            description: formData.get('description')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#createTeamModal').modal('hide');
+            showToast(data.message, 'success');
+            // Clear the form
+            document.getElementById('createTeamForm').reset();
+            // Reload the page to show the new team
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while creating the team', 'error');
+    });
+}
+
+function inviteToTeam(teamId) {
+    currentTeamId = teamId;
+    // Reset previous selections
+    selectedUsers = [];
+    document.getElementById('selectedUsers').innerHTML = '';
+    document.getElementById('userSearch').value = '';
+    document.getElementById('userSearchResults').innerHTML = '';
+    
+    $('#inviteToTeamModal').modal('show');
+}
+
+function sendTeamInvitations() {
+    if (selectedUsers.length === 0) {
+        showToast('Please select at least one user', 'warning');
+        return;
+    }
+    
+    fetch(`/teams/${currentTeamId}/invite`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            usernames: selectedUsers.map(u => u.username)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#inviteToTeamModal').modal('hide');
+            showToast(data.message, 'success');
+            selectedUsers = [];
+            currentTeamId = null;
+        } else {
+            showToast(data.error, 'error');
+        }
+    });
+}
+
+// Project collaboration
+function openProjectInviteModal() {
+    currentProjectId = document.getElementById('projectSelect').value;
+    if (!currentProjectId) {
+        showToast('Please select a project first', 'warning');
+        return;
+    }
+    
+    // Reset previous selections
+    projectSelectedUsers = [];
+    document.getElementById('projectSelectedUsers').innerHTML = '';
+    document.getElementById('invitationMessage').value = '';
+    document.getElementById('projectUserSearch').value = '';
+    document.getElementById('projectUserSearchResults').innerHTML = '';
+    
+    $('#inviteToProjectModal').modal('show');
+}
+
+function sendProjectInvitations() {
+    if (projectSelectedUsers.length === 0) {
+        showToast('Please select at least one user', 'warning');
+        return;
+    }
+    
+    fetch(`/teams/projects/${currentProjectId}/invite`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            usernames: projectSelectedUsers.map(u => u.username),
+            message: document.getElementById('invitationMessage').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#inviteToProjectModal').modal('hide');
+            showToast(data.message, 'success');
+            projectSelectedUsers = [];
+            currentProjectId = null;
+        } else {
+            showToast(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred while sending invitations', 'error');
+    });
+}
+
+// User search and selection
+function setupUserSearch() {
+    const userSearch = document.getElementById('userSearch');
+    const projectUserSearch = document.getElementById('projectUserSearch');
+    
+    [userSearch, projectUserSearch].forEach((search, index) => {
+        search.addEventListener('input', debounce((e) => {
+            const query = e.target.value;
+            if (query.length < 2) {
+                document.getElementById(index === 0 ? 'userSearchResults' : 'projectUserSearchResults').innerHTML = '';
+                return;
+            }
+            
+            fetch(`/teams/users/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.getElementById(index === 0 ? 'userSearchResults' : 'projectUserSearchResults');
+                        container.innerHTML = data.users.map(user => `
+                            <div class="search-result-item p-2 border rounded mb-1 cursor-pointer" 
+                                 onclick="selectUser(${index}, ${JSON.stringify(user).replace(/"/g, '&quot;')})">
+                                <div class="fw-bold">${user.username}</div>
+                                <small class="text-muted">${user.first_name} ${user.last_name}</small>
+                            </div>
+                        `).join('');
+                    }
+                });
+        }, 300));
+    });
+}
+
+function selectUser(type, user) {
+    const targetArray = type === 0 ? selectedUsers : projectSelectedUsers;
+    const targetContainer = type === 0 ? 'selectedUsers' : 'projectSelectedUsers';
+    
+    if (!targetArray.find(u => u.id === user.id)) {
+        targetArray.push(user);
+        updateSelectedUsers(type);
+    }
+    
+    // Clear search
+    document.getElementById(type === 0 ? 'userSearch' : 'projectUserSearch').value = '';
+    document.getElementById(type === 0 ? 'userSearchResults' : 'projectUserSearchResults').innerHTML = '';
+}
+
+function updateSelectedUsers(type) {
+    const targetArray = type === 0 ? selectedUsers : projectSelectedUsers;
+    const targetContainer = type === 0 ? 'selectedUsers' : 'projectSelectedUsers';
+    
+    document.getElementById(targetContainer).innerHTML = targetArray.map(user => `
+        <span class="badge bg-primary me-2 mb-2">
+            ${user.username}
+            <button type="button" class="btn-close btn-close-white ms-1" 
+                    onclick="removeSelectedUser(${type}, ${user.id})"></button>
+        </span>
+    `).join('');
+}
+
+function removeSelectedUser(type, userId) {
+    const targetArray = type === 0 ? selectedUsers : projectSelectedUsers;
+    const index = targetArray.findIndex(u => u.id === userId);
+    if (index > -1) {
+        targetArray.splice(index, 1);
+        updateSelectedUsers(type);
+    }
+}
+
+// Invitation responses
+function respondToInvitation(invitationId, action) {
+    fetch(`/teams/invitations/${invitationId}/${action}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            if (action === 'accept' && data.project_id) {
+                setTimeout(() => {
+                    window.location.href = `/project/${data.project_id}`;
+                }, 1000);
+            } else {
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            showToast(data.error, 'error');
+        }
+    });
+}
+
+// Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    setupUserSearch();
+    
+    // Enable/disable invite button based on project selection
+    document.getElementById('projectSelect').addEventListener('change', function() {
+        document.getElementById('inviteToProjectBtn').disabled = !this.value;
+    });
+});
+</script>
+
+<style>
+.search-result-item:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.stat {
+    padding: 10px 0;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.invitation-item {
+    transition: background-color 0.2s ease;
+}
+
+.invitation-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

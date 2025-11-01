@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Project Details: {{ project.title }}</h1>
+        <div>
+            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Projects
+            </a>
+            <button class="btn btn-danger delete-project-btn" data-project-id="{{ project.id }}" data-project-title="{{ project.title }}">
+                <i class="bi bi-trash"></i> Delete Project
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Project Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Project Information</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="30%">Title</th>
+                            <td>{{ project.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ project.description or 'No description' }}</td>
+                        </tr>
+                        <tr>
+                            <th>House Type</th>
+                            <td>{{ project.house_type|replace('_', ' ')|title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Blocks</th>
+                            <td>{{ project.total_blocks|format_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Area</th>
+                            <td>{{ project.total_area|round(2) if project.total_area else 0 }} m²</td>
+                        </tr>
+                        <tr>
+                            <th>Block Type</th>
+                            <td>
+                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                    9-inch Hollow Blocks
+                                {% elif project.structures_data.block_type == '6_inch_hollow' %}
+                                    6-inch Hollow Blocks
+                                {% else %}
+                                    {{ project.structures_data.block_type|replace('_', ' ')|title }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Waste Percentage</th>
+                            <td>{{ project.structures_data.waste_percentage|default(10) }}%</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>
+                                {% if project.is_public %}
+                                <span class="badge bg-success">Public</span>
+                                {% elif project.is_private %}
+                                <span class="badge bg-secondary">Private</span>
+                                {% elif project.team_id %}
+                                <span class="badge bg-primary">Team Project</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Private</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Created</th>
+                            <td>{{ project.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated</th>
+                            <td>{{ project.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Owner Information -->
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Owner Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='profile_pics/' + project.author.profile_pic) }}" 
+                             class="rounded-circle me-3" width="64" height="64" alt="{{ project.author.username }}">
+                        <div>
+                            <h5 class="mb-0">{{ project.author.first_name }} {{ project.author.last_name }}</h5>
+                            <p class="text-muted mb-0">@{{ project.author.username }}</p>
+                            <p class="text-muted mb-0">{{ project.author.email }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.admin_user_detail', user_id=project.author.id) }}" class="btn btn-outline-primary btn-sm">
+                        View User Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Project Collaborators -->
+            {% if project.collaborators %}
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Collaborators</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for collaborator in project.collaborators %}
+                        <div class="list-group-item d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='profile_pics/' + collaborator.user.profile_pic) }}" 
+                                 class="rounded-circle me-3" width="40" height="40" alt="{{ collaborator.user.username }}">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ collaborator.user.first_name }} {{ collaborator.user.last_name }}</h6>
+                                <small class="text-muted">@{{ collaborator.user.username }}</small>
+                            </div>
+                            <span class="badge bg-{{ 'primary' if collaborator.role == 'owner' else 'secondary' }}">
+                                {{ collaborator.role|title }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Project Structures -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Structures ({{ project.structures_data.structures|length if project.structures_data.structures else 0 }})</h6>
+                </div>
+                <div class="card-body">
+                    {% if project.structures_data and project.structures_data.structures %}
+                    <div class="accordion" id="structuresAccordion">
+                        {% for structure in project.structures_data.structures %}
+                        <div class="accordion-item mb-2">
+                            <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" 
+                                        aria-controls="collapse{{ loop.index }}">
+                                    <div class="d-flex justify-content-between w-100 me-3">
+                                        <div>
+                                            <strong>{{ structure.name }}</strong>
+                                            <span class="badge bg-secondary ms-2">{{ structure.type|replace('_', ' ')|title }}</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">{{ structure.length }}×{{ structure.width }}×{{ structure.height }} {{ structure.unit }}</small>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ loop.index }}" data-bs-parent="#structuresAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Dimensions</h6>
+                                            <table class="table table-sm">
+                                                <tr>
+                                                    <td>Length:</td>
+                                                    <td><strong>{{ structure.length }} {{ structure.unit }}</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Width:</td>
+                                                    <td><strong>{{ structure.width }} {{ structure.unit }}</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Height:</td>
+                                                    <td><strong>{{ structure.height }} {{ structure.unit }}</strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Wall Area:</td>
+                                                    <td><strong>{{ (2 * (structure.length|float + structure.width|float) * structure.height|float)|round(2) }} {{ structure.unit }}²</strong></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        {% if structure.sub_structures %}
+                                        <div class="col-md-6">
+                                            <h6>Openings & Features</h6>
+                                            <div class="openings-list">
+                                                {% for sub in structure.sub_structures %}
+                                                <div class="d-flex justify-content-between align-items-center mb-1 p-2 bg-light rounded">
+                                                    <div>
+                                                        <i class="bi bi-{{ 
+                                                            'door-open' if sub.type == 'door' else
+                                                            'window' if sub.type == 'window' else
+                                                            'snow' if sub.type == 'ac_unit' else
+                                                            'fan'
+                                                        }} me-2"></i>
+                                                        {{ sub.type|replace('_', ' ')|title }}
+                                                    </div>
+                                                    <div>
+                                                        {{ sub.width }}×{{ sub.height }} {{ sub.unit }}
+                                                        {% if sub.quantity > 1 %}
+                                                        <span class="badge bg-secondary ms-2">×{{ sub.quantity }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No structures defined</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Project Settings -->
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Calculation Settings</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Block Type:</td>
+                            <td>
+                                {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                    9-inch Hollow Blocks
+                                {% elif project.structures_data.block_type == '6_inch_hollow' %}
+                                    6-inch Hollow Blocks
+                                {% else %}
+                                    {{ project.structures_data.block_type|replace('_', ' ')|title }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Waste Percentage:</td>
+                            <td>{{ project.structures_data.waste_percentage|default(10) }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Measurement Unit:</td>
+                            <td>{{ project.structures_data.default_unit|default('feet')|title }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Delete project
+document.querySelector('.delete-project-btn').addEventListener('click', function() {
+    const projectId = this.dataset.projectId;
+    const projectTitle = this.dataset.projectTitle;
+
+    if (!confirm(`Are you sure you want to delete project "${projectTitle}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch(`/admin/projects/${projectId}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href = "{{ url_for('admin.admin_projects') }}";
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+});
+</script>
+{% endblock %}

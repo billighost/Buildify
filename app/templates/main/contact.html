@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+<link href="{{ url_for('static', filename='css/about.css') }}" rel="stylesheet">
+{% block content %}
+<!-- Contact Hero Section -->
+<section class="contact-hero-section bg-dark text-white py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-50 py-5">
+            <div class="col-lg-8 mx-auto text-center" data-aos="fade-up">
+                <span class="hero-badge">Get In Touch</span>
+                <h1 class="hero-title mb-4">Let's Build Something Amazing Together</h1>
+                <p class="hero-subtitle">
+                    Have questions about Buildify? Need support with your project? 
+                    We're here to help you succeed in your construction journey.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section py-100">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Contact Information -->
+            <div class="col-lg-4" data-aos="fade-right">
+                <div class="contact-info">
+                    <h2 class="mb-4">Get In Touch</h2>
+                    <p class="text-muted mb-5">
+                        We're always happy to hear from our users. Whether you have questions, 
+                        need support, or want to partner with us, don't hesitate to reach out.
+                    </p>
+
+                    <div class="contact-method">
+                        <div class="contact-icon">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Email Us</h5>
+                            <p>hello@buildify.ng</p>
+                            <small class="text-muted">We'll respond within 24 hours</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-method">
+                        <div class="contact-icon">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Call Us</h5>
+                            <p>+234 800 000 0000</p>
+                            <small class="text-muted">Mon-Fri from 8am to 6pm</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-method">
+                        <div class="contact-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Visit Us</h5>
+                            <p>123 Construction Avenue<br>Lagos, Nigeria</p>
+                            <small class="text-muted">Come say hello at our office</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-method">
+                        <div class="contact-icon">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Live Chat</h5>
+                            <p>Available 24/7</p>
+                            <small class="text-muted">Get instant help on our platform</small>
+                        </div>
+                    </div>
+
+                    <div class="social-links mt-5">
+                        <h6 class="mb-3">Follow Us</h6>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="social-link">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="bi bi-twitter"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="col-lg-8" data-aos="fade-left">
+                <div class="contact-form-card">
+                    <h3 class="mb-4">Send us a Message</h3>
+                    <form id="contactForm" class="contact-form">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="firstName" class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" id="firstName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="lastName" class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" id="lastName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="subject" class="form-label">Subject *</label>
+                                    <select class="form-select" id="subject" required>
+                                        <option value="">Select a subject</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="support">Technical Support</option>
+                                        <option value="billing">Billing Question</option>
+                                        <option value="partnership">Partnership Opportunity</option>
+                                        <option value="feedback">Product Feedback</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="message" class="form-label">Message *</label>
+                                    <textarea class="form-control" id="message" rows="6" required placeholder="Tell us how we can help you..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="newsletter">
+                                    <label class="form-check-label" for="newsletter">
+                                        I'd like to receive updates about Buildify features and news
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-send me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Quick Section -->
+<section class="faq-quick-section bg-light py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Quick Help</span>
+            <h2 class="section-title">Common Questions</h2>
+            <p class="section-description">
+                Quick answers to frequently asked questions
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="faq-item">
+                    <h5>How do I get started with Buildify?</h5>
+                    <p class="text-muted">
+                        Simply create a free account, choose your house type, and start adding structures. 
+                        Our intuitive interface guides you through the entire process.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="faq-item">
+                    <h5>Is there a mobile app available?</h5>
+                    <p class="text-muted">
+                        Buildify is fully responsive and works perfectly on all devices. You can access 
+                        your projects from any smartphone, tablet, or computer.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="faq-item">
+                    <h5>How accurate are the calculations?</h5>
+                    <p class="text-muted">
+                        We maintain a 98% accuracy rate. Our algorithms are continuously updated based 
+                        on real construction data and Nigerian building standards.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="faq-item">
+                    <h5>Can I use Buildify for commercial projects?</h5>
+                    <p class="text-muted">
+                        Absolutely! Many contractors and construction companies use Buildify for their 
+                        commercial projects. Check out our Professional plan for advanced features.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{{ url_for('main.home') }}#faq" class="btn btn-outline-primary">
+                <i class="bi bi-question-circle me-2"></i>View All FAQs
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="map-section">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="map-placeholder bg-primary text-white text-center py-5">
+                    <div class="container">
+                        <i class="bi bi-geo-alt-fill display-1 mb-3"></i>
+                        <h3>Our Location</h3>
+                        <p class="mb-4">123 Construction Avenue, Lagos, Nigeria</p>
+                        <a href="https://maps.google.com/?q=123+Construction+Avenue+Lagos+Nigeria" 
+                           target="_blank" class="btn btn-light">
+                            <i class="bi bi-arrow-up-right-circle me-2"></i>Open in Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Contact form handling
+    const contactForm = document.getElementById('contactForm');
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(contactForm);
+            const data = Object.fromEntries(formData);
+            
+            // Simulate form submission
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Sending...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mt-4';
+                alert.innerHTML = `
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Thank you for your message! We'll get back to you within 24 hours.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                contactForm.appendChild(alert);
+                
+                // Reset form
+                contactForm.reset();
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Scroll to alert
+                alert.scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        });
+    }
+
+    // Add animation to contact methods
+    const contactMethods = document.querySelectorAll('.contact-method');
+    contactMethods.forEach((method, index) => {
+        method.style.opacity = '0';
+        method.style.transform = 'translateY(20px)';
+        method.style.transition = `all 0.6s ease-out ${index * 0.1}s`;
+        
+        setTimeout(() => {
+            method.style.opacity = '1';
+            method.style.transform = 'translateY(0)';
+        }, 500 + (index * 100));
+    });
+});
+</script>
+{% endblock %}co

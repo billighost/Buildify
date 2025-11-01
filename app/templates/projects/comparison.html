@@ -1,0 +1,1084 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Comparison Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb breadcrumb-light">
+                            <li class="breadcrumb-item"><a href="{{ url_for('projects.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Project Comparison</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="h2 fw-bold mb-2">Project Comparison</h1>
+                            <p class="mb-0 opacity-75">Comprehensive analysis and comparison of multiple building projects</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="btn-group">
+                                <a href="{{ url_for('projects.dashboard') }}" class="btn btn-light btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                                </a>
+                                <button class="btn btn-warning btn-sm" onclick="exportComparison()">
+                                    <i class="bi bi-download me-1"></i>Export Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if comparison_data and comparison_data.projects %}
+    <!-- Quick Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row g-4 text-center">
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-primary text-white rounded-3 mb-2">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <h4 class="stat-value">{{ comparison_data.projects|length }}</h4>
+                                <p class="stat-label">Projects Compared</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-success text-white rounded-3 mb-2">
+                                    <i class="bi bi-cube"></i>
+                                </div>
+                                <h4 class="stat-value">{{ comparison_data['total_blocks']|number_format }}</h4>
+                                <p class="stat-label">Total Blocks</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-info text-white rounded-3 mb-2">
+                                    <i class="bi bi-rulers"></i>
+                                </div>
+                                <h4 class="stat-value">{{ "%.0f"|format(comparison_data.total_area) }}</h4>
+                                <p class="stat-label">Total Area (m²)</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-warning text-white rounded-3 mb-2">
+                                    <i class="bi bi-house"></i>
+                                </div>
+                                <h4 class="stat-value">{{ comparison_data.house_types_count }}</h4>
+                                <p class="stat-label">House Types</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-danger text-white rounded-3 mb-2">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <h4 class="stat-value">{{ comparison_data.average_age }}d</h4>
+                                <p class="stat-label">Avg. Project Age</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-6">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-secondary text-white rounded-3 mb-2">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <h4 class="stat-value">{{ "%.2f"|format(comparison_data.average_efficiency) }}</h4>
+                                <p class="stat-label">Avg. Efficiency</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <!-- Main Comparison Table -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table me-2"></i>
+                        Project Comparison Overview
+                    </h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="detailedView" onchange="toggleDetailedView()">
+                        <label class="form-check-label" for="detailedView">Detailed View</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="comparisonTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Project Details</th>
+                                    {% for project in comparison_data.projects %}
+                                    <th class="text-center">
+                                        <div class="project-header">
+                                            <strong>{{ project.title }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ project.house_type.replace('_', ' ').title() }}</small>
+                                            <br>
+                                            <span class="badge bg-{{ 'success' if project.is_public else 'warning' if project.is_private else 'primary' }}">
+                                                {% if project.is_public %}Public{% elif project.is_private %}Private{% else %}Team{% endif %}
+                                            </span>
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Basic Information -->
+                                <tr class="table-info">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}" class="fw-bold">
+                                        <i class="bi bi-info-circle me-2"></i>Basic Information
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Blocks Required</strong></td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center fw-bold text-primary">
+                                        {{ project.total_blocks|default(0)|number_format }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Wall Area (m²)</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ "%.2f"|format(project.total_area|default(0)) }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Block Type</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">
+                                            {% if project.structures_data.block_type == '9_inch_hollow' %}
+                                                9-inch Hollow
+                                            {% else %}
+                                                6-inch Hollow
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Waste Allowance</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ project.structures_data.waste_percentage|default(10) }}%
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                <!-- Structures Information -->
+                                <tr class="table-success">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}" class="fw-bold">
+                                        <i class="bi bi-building me-2"></i>Structures & Layout
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Number of Structures</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ project.structures_data.structures|length if project.structures_data.structures else 0 }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Total Openings</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {% set total_openings = 0 %}
+                                        {% if project.structures_data.structures %}
+                                            {% for structure in project.structures_data.structures %}
+                                                {% set total_openings = total_openings + (structure.sub_structures|length if structure.sub_structures else 0) %}
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ total_openings }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Average Structure Size (m²)</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {% if project.structures_data.structures %}
+                                            {{ "%.1f"|format(project.total_area / project.structures_data.structures|length) }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                <!-- Materials Breakdown -->
+                                <tr class="table-warning">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}" class="fw-bold">
+                                        <i class="bi bi-list-check me-2"></i>Materials Estimation
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Cement Bags (approx)</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ ((project.total_blocks|default(0) / 75)|round|int) if project.total_blocks else 0 }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Sand Trucks (approx)</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ ((project.total_blocks|default(0) / 2000)|round(1)) if project.total_blocks else 0 }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Labor Days (approx)</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {{ ((project.total_blocks|default(0) / 80)|round) if project.total_blocks else 0 }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                <!-- Efficiency Metrics -->
+                                <tr class="table-danger">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}" class="fw-bold">
+                                        <i class="bi bi-graph-up me-2"></i>Efficiency Metrics
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Blocks per m²</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        {% if project.total_area > 0 %}
+                                            {{ "%.2f"|format(project.total_blocks / project.total_area) }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Cost Efficiency Score</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-{{ 'success' if project.efficiency_score > 80 else 'warning' if project.efficiency_score > 60 else 'danger' }}" 
+                                                 style="width: {{ project.efficiency_score }}%">
+                                                {{ project.efficiency_score }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td>Space Utilization</td>
+                                    {% for project in comparison_data.projects %}
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-info" style="width: {{ project.space_utilization }}%">
+                                                {{ project.space_utilization }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+
+                                <!-- Detailed Structures (Collapsible) -->
+                                <tr class="table-primary">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}" class="fw-bold">
+                                        <i class="bi bi-diagram-3 me-2"></i>Detailed Structure Breakdown
+                                        <button class="btn btn-sm btn-outline-light float-end" onclick="toggleStructuresDetails()">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr id="structuresDetails" style="display: none;">
+                                    <td colspan="{{ comparison_data.projects|length + 1 }}">
+                                        <div class="row">
+                                            {% for project in comparison_data.projects %}
+                                            <div class="col-lg-4 col-md-6 mb-4">
+                                                <div class="card">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">{{ project.title }}</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if project.structures_data.structures %}
+                                                        <div class="structure-list">
+                                                            {% for structure in project.structures_data.structures %}
+                                                            <div class="structure-item mb-2 p-2 border rounded">
+                                                                <div class="d-flex justify-content-between">
+                                                                    <strong>{{ structure.name }}</strong>
+                                                                    <span class="badge bg-primary">{{ structure.type.replace('_', ' ').title() }}</span>
+                                                                </div>
+                                                                <small class="text-muted">
+                                                                    {{ structure.length }} × {{ structure.width }} × {{ structure.height }} {{ structure.unit }}
+                                                                </small>
+                                                                {% if structure.sub_structures %}
+                                                                <div class="mt-1">
+                                                                    <small>
+                                                                        <strong>Openings:</strong> 
+                                                                        {{ structure.sub_structures|length }}
+                                                                    </small>
+                                                                </div>
+                                                                {% endif %}
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% else %}
+                                                        <p class="text-muted text-center">No structures defined</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Visual Comparison -->
+            <div class="row">
+                <!-- Blocks Comparison Chart -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-cube me-2 text-primary"></i>
+                                Blocks Required Comparison
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="blocksChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area Comparison Chart -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-rulers me-2 text-success"></i>
+                                Wall Area Comparison
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="areaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Efficiency Comparison Chart -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-speedometer2 me-2 text-warning"></i>
+                                Efficiency Comparison
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="efficiencyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Breakdown Chart -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-pie-chart me-2 text-info"></i>
+                                Materials Distribution
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="materialsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Analytics -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-graph-up-arrow me-2"></i>
+                                Advanced Analytics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="analytics-card text-center p-4">
+                                        <div class="analytics-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-lightning-charge"></i>
+                                        </div>
+                                        <h4 class="text-primary">{{ comparison_data['most_efficient']['title'] }}</h4>
+                                        <p class="text-muted">Most Efficient Design</p>
+                                        <div class="efficiency-stats">
+                                           <!-- Instead of direct access, use safe access -->
+{% if comparison_data and comparison_data.projects %}
+    {% for project in comparison_data.projects %}
+        <!-- Safe access to project properties -->
+        <td class="text-center">{{ project.get('total_blocks', 0)|number_format }}</td>
+        <td class="text-center">{{ "%.2f"|format(project.get('total_area', 0)) }}</td>
+    {% endfor %}
+{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="analytics-card text-center p-4">
+                                        <div class="analytics-icon bg-success text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-trophy"></i>
+                                        </div>
+                                        <h4 class="text-success">{{ comparison_data.largest_project.title }}</h4>
+                                        <p class="text-muted">Largest Project</p>
+                                        <div class="efficiency-stats">
+                                            <span class="badge bg-primary">{{ comparison_data.largest_project.total_blocks }} blocks</span>
+                                            <span class="badge bg-warning">{{ comparison_data.largest_project.structures_data.structures|length }} structures</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="analytics-card text-center p-4">
+                                        <div class="analytics-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                        <h4 class="text-warning">{{ "%.1f"|format(comparison_data.average_blocks_per_area) }}</h4>
+                                        <p class="text-muted">Avg. Blocks per m²</p>
+                                        <div class="efficiency-stats">
+                                            <span class="badge bg-info">Industry Avg: ~10</span>
+                                            <span class="badge bg-{{ 'success' if comparison_data.average_blocks_per_area < 10 else 'danger' }}">
+                                                {{ 'Efficient' if comparison_data.average_blocks_per_area < 10 else 'Needs Optimization' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost-Benefit Analysis -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-calculator me-2"></i>
+                                Cost-Benefit Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Metric</th>
+                                            {% for project in comparison_data.projects %}
+                                            <th class="text-center">{{ project.title }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Blocks per Naira</strong></td>
+                                            {% for project in comparison_data.projects %}
+                                            <td class="text-center">
+                                                {{ "%.2f"|format(project.total_blocks / 1000) if project.total_blocks else 0 }}
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                        <tr>
+                                            <td>Space Efficiency Ratio</td>
+                                            {% for project in comparison_data.projects %}
+                                            <td class="text-center">
+                                                {% if project.structures_data.structures %}
+                                                    {{ "%.2f"|format(project.total_area / project.structures_data.structures|length) }}
+                                                {% else %}
+                                                    0
+                                                {% endif %}
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                        <tr>
+                                            <td>Material Utilization</td>
+                                            {% for project in comparison_data.projects %}
+                                            <td class="text-center">
+                                                <div class="progress" style="height: 15px;">
+                                                    <div class="progress-bar bg-{{ 'success' if project.material_utilization > 80 else 'warning' if project.material_utilization > 60 else 'danger' }}" 
+                                                         style="width: {{ project.material_utilization }}%">
+                                                        {{ project.material_utilization }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                        <tr>
+                                            <td>Construction Complexity</td>
+                                            {% for project in comparison_data.projects %}
+                                            <td class="text-center">
+                                                <span class="badge bg-{{ 'success' if project.complexity_score < 3 else 'warning' if project.complexity_score < 7 else 'danger' }}">
+                                                    {% if project.complexity_score < 3 %}Simple{% elif project.complexity_score < 7 %}Moderate{% else %}Complex{% endif %}
+                                                </span>
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In your comparison.html template, replace the problematic section with this: -->
+
+            <!-- Recommendations & Insights -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Smart Recommendations & Insights
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="insight-item mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-trophy me-2"></i>
+                                            Best Overall Value
+                                        </h6>
+                                        <p class="mb-1">
+                                            <strong>{{ comparison_data.best_value.title }}</strong>
+                                        </p>
+                                        <small class="text-muted">
+                                            Optimal balance of cost, space utilization, and material efficiency
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="insight-item mb-4">
+                                        <h6 class="text-success">
+                                            <i class="bi bi-house me-2"></i>
+                                            Most Space Efficient
+                                        </h6>
+                                        <p class="mb-1">
+                                            <strong>{{ comparison_data.most_efficient.title }}</strong>
+                                        </p>
+                                        <small class="text-muted">
+                                            Uses {{ comparison_data.most_efficient.total_blocks }} blocks for 
+                                            {{ "%.2f"|format(comparison_data.most_efficient.total_area) }} m² wall area
+                                        </small>
+                                    </div>
+
+                                    <div class="insight-item">
+                                        <h6 class="text-warning">
+                                            <i class="bi bi-clock me-2"></i>
+                                            Construction Timeline
+                                        </h6>
+                                        <p class="mb-1">
+                                            Estimated construction time ranges from 
+                                            {{ comparison_data.fastest_build.days }} to {{ comparison_data.slowest_build.days }} days
+                                        </p>
+                                        <small class="text-muted">
+                                            Based on block count and complexity analysis
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="insight-item mb-4">
+                                        <h6 class="text-danger">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            Areas for Improvement
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            {% for improvement in comparison_data.improvement_areas %}
+                                            <li class="mb-2">
+                                                <i class="bi bi-arrow-right me-2 text-danger"></i>
+                                                {{ improvement }}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="insight-item">
+                                        <h6 class="text-info">
+                                            <i class="bi bi-pie-chart me-2"></i>
+                                            Material Optimization
+                                        </h6>
+                                        <p class="mb-1">
+                                            Potential savings: {{ comparison_data.potential_savings.blocks }} blocks 
+                                            ({{ comparison_data.potential_savings.percentage }}%)
+                                        </p>
+                                        <small class="text-muted">
+                                            Through better design and waste reduction strategies
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="empty-icon mb-4">
+                        <i class="bi bi-bar-chart display-1 text-muted"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">No Projects to Compare</h3>
+                    <p class="text-muted mb-4">You need at least 2 projects to use the comparison feature</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('projects.new_project') }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Project
+                        </a>
+                        <a href="{{ url_for('projects.dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-grid me-2"></i>View All Projects
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if comparison_data and comparison_data.projects %}
+    const projects = {{ comparison_data.projects|tojson|safe }};
+    const comparisonData = {{ comparison_data|tojson|safe }};
+    
+    // Generate colors for charts
+    const generateColors = (count) => {
+        const colors = [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', 
+            '#858796', '#5a5c69', '#6f42c1', '#e83e8c', '#fd7e14'
+        ];
+        return colors.slice(0, count);
+    };
+
+    const projectColors = generateColors(projects.length);
+    
+    // Blocks Comparison Chart
+    const blocksCtx = document.getElementById('blocksChart').getContext('2d');
+    const blocksChart = new Chart(blocksCtx, {
+        type: 'bar',
+        data: {
+            labels: projects.map(p => p.title),
+            datasets: [{
+                label: 'Blocks Required',
+                data: projects.map(p => p.total_blocks || 0),
+                backgroundColor: projectColors,
+                borderColor: projectColors.map(color => color.replace('0.8', '1')),
+                borderWidth: 2,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Blocks'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Blocks: ${context.parsed.y.toLocaleString()}`;
+                        }
+                    }
+                },
+                datalabels: {
+                    color: '#fff',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function(value) {
+                        return value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+    // Area Comparison Chart
+    const areaCtx = document.getElementById('areaChart').getContext('2d');
+    const areaChart = new Chart(areaCtx, {
+        type: 'bar',
+        data: {
+            labels: projects.map(p => p.title),
+            datasets: [{
+                label: 'Wall Area (m²)',
+                data: projects.map(p => p.total_area || 0),
+                backgroundColor: projectColors.map(color => color.replace('df', '9c')),
+                borderColor: projectColors.map(color => color.replace('0.8', '1')),
+                borderWidth: 2,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Wall Area (m²)'
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Area: ${context.parsed.y.toFixed(2)} m²`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Efficiency Comparison Chart
+    const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+    const efficiencyChart = new Chart(efficiencyCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Cost Efficiency', 'Space Utilization', 'Material Usage', 'Construction Speed', 'Design Complexity'],
+            datasets: projects.map((project, index) => ({
+                label: project.title,
+                data: [
+                    project.efficiency_score || 75,
+                    project.space_utilization || 70,
+                    project.material_utilization || 65,
+                    100 - (project.complexity_score * 10) || 70,
+                    100 - (project.structures_data.structures?.length * 2) || 80
+                ],
+                backgroundColor: projectColors[index].replace(')', ', 0.2)'),
+                borderColor: projectColors[index],
+                borderWidth: 2,
+                pointBackgroundColor: projectColors[index]
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+
+    // Materials Distribution Chart
+    const materialsCtx = document.getElementById('materialsChart').getContext('2d');
+    const materialsChart = new Chart(materialsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: projects.map(p => p.title),
+            datasets: [{
+                data: projects.map(p => p.total_blocks || 0),
+                backgroundColor: projectColors,
+                borderColor: '#fff',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed.toLocaleString()} blocks (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    {% endif %}
+});
+
+// Toggle functions
+function toggleDetailedView() {
+    const table = document.getElementById('comparisonTable');
+    const isDetailed = document.getElementById('detailedView').checked;
+    
+    const detailedRows = table.querySelectorAll('tr.table-info, tr.table-success, tr.table-warning, tr.table-danger');
+    detailedRows.forEach(row => {
+        if (row.classList.contains('table-primary')) return; // Keep structure header
+        row.style.display = isDetailed ? '' : 'none';
+    });
+}
+
+function toggleStructuresDetails() {
+    const detailsRow = document.getElementById('structuresDetails');
+    const button = event.target.closest('button');
+    const icon = button.querySelector('i');
+    
+    if (detailsRow.style.display === 'none') {
+        detailsRow.style.display = '';
+        icon.className = 'bi bi-chevron-up';
+    } else {
+        detailsRow.style.display = 'none';
+        icon.className = 'bi bi-chevron-down';
+    }
+}
+
+function exportComparison() {
+    // In a real implementation, this would generate a PDF or Excel report
+    alert('Export feature would generate a comprehensive PDF report with all comparison data, charts, and insights.');
+    
+    // Simulate export
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generating Report...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showNotification('Comparison report generated successfully!', 'success');
+    }, 2000);
+}
+
+function showNotification(message, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1060;
+        min-width: 300px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    `;
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>
+
+<style>
+.stat-card {
+    padding: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+.project-header {
+    min-width: 120px;
+}
+
+.analytics-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    transition: all 0.3s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.analytics-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.insight-item {
+    padding: 1rem;
+    border-left: 4px solid;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.structure-item {
+    transition: all 0.3s;
+}
+
+.structure-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.efficiency-stats {
+    margin-top: 0.5rem;
+}
+
+.efficiency-stats .badge {
+    margin: 0 2px;
+}
+
+.table th {
+    border-top: none;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.custom-notification {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.chart-container {
+    position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .project-header {
+        min-width: 80px;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,843 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section id="home" class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6" data-aos="fade-right">
+                <span class="hero-badge">🚀 Revolutionizing Construction in Nigeria</span>
+                <h1 class="hero-title">Build Smarter with AI-Powered Block Calculations</h1>
+                <p class="hero-subtitle">
+                    Accurate construction planning, real-time material costs, and intelligent recommendations. 
+                    Save time, reduce waste, and build confidently with Buildify.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Start Building Free
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>See How It Works
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">10,000+</span>
+                        <span class="hero-stat-label">Projects Calculated</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">₦2.5B+</span>
+                        <span class="hero-stat-label">Construction Value</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">98%</span>
+                        <span class="hero-stat-label">Accuracy Rate</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="carousel-3d">
+                    <div class="carousel-container">
+                        <div class="carousel-item">Smart Calculations</div>
+                        <div class="carousel-item">Real-time Prices</div>
+                        <div class="carousel-item">3D Visualization</div>
+                        <div class="carousel-item">Waste Reduction</div>
+                        <div class="carousel-item">Cost Analysis</div>
+                        <div class="carousel-item">Project Management</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-item">
+                    <h3 class="stat-number counter" data-target="12457">0</h3>
+                    <p class="stat-label">Projects Completed</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-item">
+                    <h3 class="stat-number counter" data-target="98.7">0</h3>
+                    <p class="stat-label">Accuracy Rate (%)</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-item">
+                    <h3 class="stat-number counter" data-target="2543">0</h3>
+                    <p class="stat-label">Happy Builders</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-item">
+                    <h3 class="stat-number counter" data-target="15">0</h3>
+                    <p class="stat-label">States Covered</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Why Choose Buildify</span>
+            <h2 class="section-title">Powerful Features for Smart Construction</h2>
+            <p class="section-description">
+                Everything you need to plan, calculate, and manage your construction projects efficiently.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <h3 class="feature-title">AI-Powered Calculations</h3>
+                    <p class="feature-description">
+                        Advanced algorithms that accurately calculate block requirements, material costs, and construction timelines.
+                    </p>
+                    <ul class="feature-list">
+                        <li>Precision block counting</li>
+                        <li>Automatic waste calculation</li>
+                        <li>Real-time cost updates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3 class="feature-title">Live Market Prices</h3>
+                    <p class="feature-description">
+                        Get real-time construction material prices from across Nigeria's major markets.
+                    </p>
+                    <ul class="feature-list">
+                        <li>Regional price variations</li>
+                        <li>Supplier comparisons</li>
+                        <li>Price trend analysis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-house-check"></i>
+                    </div>
+                    <h3 class="feature-title">House Type Templates</h3>
+                    <p class="feature-description">
+                        Pre-built templates for common Nigerian house designs with auto-filled specifications.
+                    </p>
+                    <ul class="feature-list">
+                        <li>30+ house types</li>
+                        <li>Custom modifications</li>
+                        <li>Standard dimensions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-file-pdf"></i>
+                    </div>
+                    <h3 class="feature-title">Professional Reports</h3>
+                    <p class="feature-description">
+                        Generate detailed construction reports, material lists, and cost breakdowns.
+                    </p>
+                    <ul class="feature-list">
+                        <li>PDF export</li>
+                        <li>Share with contractors</li>
+                        <li>Budget planning</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <h3 class="feature-title">Mobile Responsive</h3>
+                    <p class="feature-description">
+                        Access your projects and calculations from any device, anywhere, anytime.
+                    </p>
+                    <ul class="feature-list">
+                        <li>Mobile-first design</li>
+                        <li>Offline capabilities</li>
+                        <li>Touch-optimized</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="feature-title">Secure & Reliable</h3>
+                    <p class="feature-description">
+                        Your data is protected with enterprise-grade security and regular backups.
+                    </p>
+                    <ul class="feature-list">
+                        <li>Bank-level security</li>
+                        <li>Auto backups</li>
+                        <li>Privacy focused</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Efficiency Analysis Section -->
+<section class="efficiency-section bg-dark text-white py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Smart Savings</span>
+            <h2 class="section-title">Build Smarter, Save More</h2>
+            <p class="section-description">
+                See how Buildify users achieve remarkable efficiency in their construction projects
+            </p>
+        </div>
+
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="efficiency-chart">
+                    <div class="chart-bars">
+                        <div class="chart-bar">
+                            <div class="bar-label">Traditional Method</div>
+                            <div class="bar-container">
+                                <div class="bar-fill traditional" style="width: 85%">
+                                    <span class="bar-value">15% Waste</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-bar">
+                            <div class="bar-label">With Buildify</div>
+                            <div class="bar-container">
+                                <div class="bar-fill buildify" style="width: 25%">
+                                    <span class="bar-value">5% Waste</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-color traditional"></span>
+                            <span>Traditional Construction Planning</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color buildify"></span>
+                            <span>Buildify Optimized Planning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="efficiency-stats">
+                    <div class="efficiency-stat">
+                        <div class="stat-icon">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Save Up to 20%</h3>
+                            <p>On material costs with optimized block calculations</p>
+                        </div>
+                    </div>
+                    <div class="efficiency-stat">
+                        <div class="stat-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Save 15+ Hours</h3>
+                            <p>On planning and calculations per project</p>
+                        </div>
+                    </div>
+                    <div class="efficiency-stat">
+                        <div class="stat-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>98% Accuracy</h3>
+                            <p>In block calculations and cost estimates</p>
+                        </div>
+                    </div>
+                    <div class="efficiency-stat">
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-down"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Reduce Waste by 67%</h3>
+                            <p>With precise material calculations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="how-it-works-section bg-light py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Simple Process</span>
+            <h2 class="section-title">How Buildify Works</h2>
+            <p class="section-description">
+                Get accurate block calculations in just 4 easy steps
+            </p>
+        </div>
+
+        <div class="row g-5">
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="step-card text-center">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    <h4>Choose House Type</h4>
+                    <p>Select from 30+ Nigerian house designs or create custom</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="step-card text-center">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <h4>Define Structures</h4>
+                    <p>Add rooms, windows, doors with precise dimensions</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="step-card text-center">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <h4>Auto-Calculate</h4>
+                    <p>Get instant block counts and cost estimates</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="step-card text-center">
+                    <div class="step-number">04</div>
+                    <div class="step-icon">
+                        <i class="bi bi-download"></i>
+                    </div>
+                    <h4>Export & Build</h4>
+                    <p>Download reports and start construction</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-play-circle me-2"></i>See Live Demo
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section id="testimonials" class="testimonials-section">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Success Stories</span>
+            <h2 class="section-title">What Our Users Say</h2>
+            <p class="section-description">
+                Join thousands of Nigerians building smarter with Buildify
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "Buildify saved me over ₦200,000 on my 3-bedroom bungalow. The accuracy is incredible!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AC</div>
+                        <div class="author-info">
+                            <h5>Adeola Chukwu</h5>
+                            <p>Home Owner, Lagos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "As a contractor, Buildify has streamlined my estimating process. Highly recommended!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">TO</div>
+                        <div class="author-info">
+                            <h5>Tunde Ojo</h5>
+                            <p>Construction Manager, Abuja</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        "The real-time price updates helped me budget accurately. No more surprise costs!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">FA</div>
+                        <div class="author-info">
+                            <h5>Funke Adebayo</h5>
+                            <p>Project Developer, Ibadan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Testimonials Carousel -->
+        <div class="testimonials-carousel mt-5" data-aos="fade-up">
+            <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="testimonial-quote text-center">
+                            <i class="bi bi-quote display-1 text-primary opacity-25"></i>
+                            <blockquote class="blockquote">
+                                <p class="mb-4">"Buildify transformed how we plan construction projects. The accuracy and time savings are unbelievable!"</p>
+                                <footer class="blockquote-footer">Engr. Musa Bello, <cite title="Source Title">Lead Architect</cite></footer>
+                            </blockquote>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="testimonial-quote text-center">
+                            <i class="bi bi-quote display-1 text-primary opacity-25"></i>
+                            <blockquote class="blockquote">
+                                <p class="mb-4">"I've built 5 houses with Buildify and saved millions. This is a game-changer for Nigerian construction."</p>
+                                <footer class="blockquote-footer">Mrs. Chioma Okoro, <cite title="Source Title">Real Estate Developer</cite></footer>
+                            </blockquote>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="testimonial-quote text-center">
+                            <i class="bi bi-quote display-1 text-primary opacity-25"></i>
+                            <blockquote class="blockquote">
+                                <p class="mb-4">"The mobile app lets me calculate blocks on-site. No more guesswork or material shortages!"</p>
+                                <footer class="blockquote-footer">Mr. Segun Adekunle, <cite title="Source Title">Site Supervisor</cite></footer>
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="pricing-section bg-light py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Simple Pricing</span>
+            <h2 class="section-title">Choose Your Plan</h2>
+            <p class="section-description">
+                Start free and upgrade as you grow. No hidden fees, no contracts.
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Starter</h3>
+                        <div class="price">
+                            <span class="currency">₦</span>
+                            <span class="amount">0</span>
+                            <span class="period">/forever</span>
+                        </div>
+                        <p class="price-description">Perfect for personal projects</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="bi bi-check text-success"></i> 3 Projects</li>
+                            <li><i class="bi bi-check text-success"></i> Basic Calculations</li>
+                            <li><i class="bi bi-check text-success"></i> Standard House Types</li>
+                            <li><i class="bi bi-check text-success"></i> PDF Reports</li>
+                            <li><i class="bi bi-x text-muted"></i> Advanced Analytics</li>
+                            <li><i class="bi bi-x text-muted"></i> Priority Support</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-100">Get Started</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Professional</h3>
+                        <div class="price">
+                            <span class="currency">₦</span>
+                            <span class="amount">5,000</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="price-description">For serious builders & contractors</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="bi bi-check text-success"></i> Unlimited Projects</li>
+                            <li><i class="bi bi-check text-success"></i> Advanced Calculations</li>
+                            <li><i class="bi bi-check text-success"></i> All House Types</li>
+                            <li><i class="bi bi-check text-success"></i> Detailed Reports</li>
+                            <li><i class="bi bi-check text-success"></i> Cost Analysis</li>
+                            <li><i class="bi bi-check text-success"></i> Priority Support</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary w-100">Start Free Trial</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Enterprise</h3>
+                        <div class="price">
+                            <span class="currency">₦</span>
+                            <span class="amount">15,000</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="price-description">For construction companies</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="bi bi-check text-success"></i> Everything in Pro</li>
+                            <li><i class="bi bi-check text-success"></i> Team Collaboration</li>
+                            <li><i class="bi bi-check text-success"></i> API Access</li>
+                            <li><i class="bi bi-check text-success"></i> Custom Templates</li>
+                            <li><i class="bi bi-check text-success"></i> Dedicated Support</li>
+                            <li><i class="bi bi-check text-success"></i> White-label Reports</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="{{ url_for('main.contact') }}" class="btn btn-outline-primary w-100">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5" data-aos="fade-up">
+            <p class="text-muted">All plans include 14-day free trial. No credit card required.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Need Help?</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-description">
+                Find answers to common questions about Buildify
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How accurate are Buildify's calculations?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Buildify maintains a 98% accuracy rate in block calculations. Our algorithms are continuously updated based on real construction data and Nigerian building standards. We account for waste, openings, and regional variations.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Do I need construction experience to use Buildify?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Not at all! Buildify is designed for everyone - from professional contractors to first-time home builders. Our intuitive interface and pre-built templates make construction planning accessible to anyone.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="300">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                How often are material prices updated?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We update material prices daily from multiple sources across Nigeria's major markets. Our system tracks price trends and provides real-time updates to ensure your estimates are always current.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="400">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Can I use Buildify on my mobile phone?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Absolutely! Buildify is fully responsive and works perfectly on smartphones, tablets, and desktops. You can access your projects and make calculations from anywhere.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item" data-aos="fade-up" data-aos-delay="500">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                What house types are available?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We offer 30+ Nigerian house types including bungalows, duplexes, face-me-face-you, and modern designs. You can also create completely custom designs with our structure builder.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section bg-dark text-white py-100">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-subtitle">Our Experts</span>
+            <h2 class="section-title">Meet The Buildify Team</h2>
+            <p class="section-description">
+                Passionate professionals dedicated to revolutionizing construction in Nigeria
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="team-card text-center">
+                    <div class="team-avatar">
+                        <img src="{{ url_for('static', filename='images/team/ceo.jpg') }}" alt="CEO" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM2ODVlMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDAiPkFIPC90ZXh0Pjwvc3ZnPg=='">
+                    </div>
+                    <h4>Adebayo Hassan</h4>
+                    <p class="team-role">CEO & Founder</p>
+                    <p class="team-bio">15+ years in construction technology</p>
+                    <div class="team-social">
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="team-card text-center">
+                    <div class="team-avatar">
+                        <img src="{{ url_for('static', filename='images/team/cto.jpg') }}" alt="CTO" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM2ODVlMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDAiPk1PPC90ZXh0Pjwvc3ZnPg=='">
+                    </div>
+                    <h4>Mohammed Okoro</h4>
+                    <p class="team-role">CTO</p>
+                    <p class="team-bio">AI and construction software expert</p>
+                    <div class="team-social">
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-github"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="team-card text-center">
+                    <div class="team-avatar">
+                        <img src="{{ url_for('static', filename='images/team/architect.jpg') }}" alt="Architect" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM2ODVlMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDAiPkZBPC90ZXh0Pjwvc3ZnPg=='">
+                    </div>
+                    <h4>Fatima Abdullahi</h4>
+                    <p class="team-role">Lead Architect</p>
+                    <p class="team-bio">Registered architect with 12 years experience</p>
+                    <div class="team-social">
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="team-card text-center">
+                    <div class="team-avatar">
+                        <img src="{{ url_for('static', filename='images/team/engineer.jpg') }}" alt="Engineer" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM2ODVlMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDAiPkFOPC90ZXh0Pjwvc3ZnPg=='">
+                    </div>
+                    <h4>Anita Nwosu</h4>
+                    <p class="team-role">Civil Engineer</p>
+                    <p class="team-bio">Structural engineering and materials specialist</p>
+                    <div class="team-social">
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA Section -->
+<section class="cta-section bg-primary text-white">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8" data-aos="fade-up">
+                <h2 class="cta-title mb-4">Ready to Build Smarter?</h2>
+                <p class="cta-description mb-5">
+                    Join thousands of Nigerians using Buildify to save time, reduce costs, and build with confidence.
+                    Start your free trial today - no credit card required!
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Start Free Today
+                    </a>
+                    <a href="{{ url_for('main.contact') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-chat-dots me-2"></i>Contact Sales
+                    </a>
+                </div>
+                <div class="mt-4">
+                    <small class="text-light opacity-75">
+                        <i class="bi bi-shield-check me-1"></i>
+                        Trusted by 2,500+ builders across Nigeria
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Additional landing page specific animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Counter animation for stats
+    const counters = document.querySelectorAll('.counter');
+    const speed = 200;
+    
+    const animateCounters = () => {
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const inc = target / speed;
+            
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(() => animateCounters(), 1);
+            } else {
+                counter.innerText = target.toLocaleString();
+            }
+        });
+    };
+
+    // Start counters when stats section is in view
+    const statsSection = document.querySelector('.stats-section');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+
+    // Parallax effect for hero section
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero-section');
+        if (hero) {
+            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
+    });
+
+    // Animate efficiency bars
+    const efficiencySection = document.querySelector('.efficiency-section');
+    const efficiencyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                document.querySelectorAll('.bar-fill').forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 500);
+                });
+                efficiencyObserver.unobserve(entry.target);
+            }
+        });
+    });
+
+    if (efficiencySection) {
+        efficiencyObserver.observe(efficiencySection);
+    }
+
+    // Add floating animation to feature cards on hover
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+
+    // Typewriter effect for hero title
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) {
+        const text = heroTitle.textContent;
+        heroTitle.textContent = '';
+        let i = 0;
+        
+        function typeWriter() {
+            if (i < text.length) {
+                heroTitle.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        // Start typing after loading screen
+        setTimeout(typeWriter, 2500);
+    }
+});
+</script>
+{% endblock %}
